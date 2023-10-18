@@ -127,7 +127,7 @@ void URHPartyManager::UpdatePartyFromSubsystem()
 	UpdateParty(pSession);
 }
 
-void URHPartyManager::HandleSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession)
+void URHPartyManager::HandleSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession, const FRH_ErrorInfo& ErrorInfo)
 {
 	if (bSuccess)
 	{
@@ -748,7 +748,7 @@ void URHPartyManager::OnNewPartyMemberAdded(FRH_PartyMemberData* NewPartyMemberD
 
 void URHPartyManager::UIX_InviteMemberToParty(const FGuid& PlayerUuid)
 {
-	auto HandleInviteSentDelegate = FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this, PlayerUuid](bool bSuccess, URH_SessionView* pUpdatedSession)
+	auto HandleInviteSentDelegate = FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this, PlayerUuid](bool bSuccess, URH_SessionView* pUpdatedSession, const FRH_ErrorInfo& ErrorInfo)
 		{
 			auto Player = MyHud->GetOrCreatePlayerInfo(PlayerUuid);
 			if (!bSuccess)
@@ -1047,7 +1047,7 @@ void URHPartyManager::ForcePartyCleanUp(bool ForceLeave /*= false*/)
 	}
 }
 
-void URHPartyManager::HandleSessionUpdate(bool bSuccess, URH_JoinedSession* pSession)
+void URHPartyManager::HandleSessionUpdate(bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
 {
 	FText SessionUpdateMessage = FText::GetEmpty();
 	if (!bSuccess)
@@ -1174,7 +1174,7 @@ void URHPartyManager::HandlePreferredRegionUpdated()
 	}
 }
 
-void URHPartyManager::HandleUpdateSessionRegionIdResponse(bool bSuccess, URH_JoinedSession* pSession)
+void URHPartyManager::HandleUpdateSessionRegionIdResponse(bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
 {
 	if (!bSuccess)
 	{
