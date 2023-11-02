@@ -293,7 +293,7 @@ protected:
 	virtual void						HandleSessionUpdated(URH_SessionView* pSession);
 	virtual void						HandleSessionAdded(URH_SessionView* pSession);
 	virtual void						HandleSessionRemoved(URH_SessionView* pSession);
-	virtual void						HandleSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession);
+	virtual void						HandleSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession, const FRH_ErrorInfo& ErrorInfo);
 	virtual void						HandleLoginPollSessionsComplete(bool bSuccess);
 	virtual void						HandlePartyMemberStateChanged(URH_SessionView* UpdatedSession, const FRH_SessionMemberStatusState& OldStatus, const FRH_SessionMemberStatusState& NewStatus);
 
@@ -318,7 +318,7 @@ private:
 
 	UFUNCTION()
 	void HandlePreferredRegionUpdated();
-	void HandleUpdateSessionRegionIdResponse(bool bSuccess, URH_JoinedSession* pSession);
+	void HandleUpdateSessionRegionIdResponse(bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo);
 #pragma endregion
 
 #pragma region SETTING UP THE PARTY AND HANDLING UPDATES
@@ -352,7 +352,7 @@ protected:
 	void								ForcePartyCleanUp(bool ForceLeave = false);
 
 	// handle a session update event
-	void								HandleSessionUpdate(bool bSuccess, URH_JoinedSession* pSession);
+	void								HandleSessionUpdate(bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo);
 
 	FTimerHandle						UpdatePartyTimerHandle;
 #pragma endregion

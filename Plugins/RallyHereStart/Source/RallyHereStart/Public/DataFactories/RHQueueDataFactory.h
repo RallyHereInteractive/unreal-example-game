@@ -335,7 +335,7 @@ protected:
 	void							UpdateCustomMatchInfo();
 	void							UpdateCustomSessionBrowserInfo();
 
-	void							HandleCustomMatchSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession);
+	void							HandleCustomMatchSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession, const FRH_ErrorInfo& ErrorInfo);
 	void							HandleLoginPollSessionsComplete(bool bSuccess);
 	void							HandleSessionAdded(URH_SessionView* pSession);
 	void							HandleSessionRemoved(URH_SessionView* pSession);
