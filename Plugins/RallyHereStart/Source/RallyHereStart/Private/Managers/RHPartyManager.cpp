@@ -97,7 +97,10 @@ void URHPartyManager::PostLogoff()
 
 void URHPartyManager::HandleFriendUpdate(URH_RHFriendAndPlatformFriend* Friend)
 {
-	UpdateParty(PartySession);
+	if (!UpdatePartyTimerHandle.IsValid() && MyHud != nullptr)
+	{
+		UpdatePartyTimerHandle = MyHud->GetWorldTimerManager().SetTimerForNextTick(FSimpleDelegate::CreateWeakLambda(this, [this]() { UpdateParty(PartySession); UpdatePartyTimerHandle.Invalidate(); }));
+	}
 }
 
 void URHPartyManager::HandleLoginPollSessionsComplete(bool bSuccess)

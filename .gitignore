@@ -9,7 +9,7 @@ Saved/
 DerivedDataCache/
 
 # Ignore files that contain potential secrets or NDA'd items
-Config/DefaultRallyHereIntegration.ini
+Config/*RallyHereIntegration.ini
 Config/*/*RallyHereIntegration.ini
 Platforms/
 

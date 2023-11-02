@@ -85,8 +85,8 @@ void URHUISessionManager::OnLoginPlayerChanged(ULocalPlayer* LocalPlayer)
 
 		if (URH_EntitlementSubsystem* ESS = RHSS->GetEntitlementSubsystem())
 		{
-			ESS->SubmitEntitlementsForOSS(ERHAPI_Platform::Amazon);
-			ESS->SubmitEntitlementsForOSS(ERHAPI_Platform::Twitch);
+			ESS->SubmitEntitlementsForPlatform(ERHAPI_Platform::Amazon);
+			ESS->SubmitEntitlementsForPlatform(ERHAPI_Platform::Twitch);
 		}
 
 		if (PlayerInfo != nullptr)

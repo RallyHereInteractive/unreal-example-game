@@ -407,7 +407,7 @@ void URHLoginDataFactory::OnRHLoginResponse(const FRH_LoginResult& LR)
         LoginEvent_FailedClient(NSLOCTEXT("RHErrorMsg", "AgeRestrictions", "AgeRestrictions"));
         break;
     case ERHAPI_LoginResult::Fail_OSSPrivilegeCheck:
-		LoginEvent_FailedClient(NSLOCTEXT("RHErrorMsg", "OSSPrivledgeError", "OSSPrivledgeError"));
+		LoginEvent_FailedClient(NSLOCTEXT("RHErrorMsg", "OSSPrivilegeError", "OSSPrivilegeError"));
         break;
     case ERHAPI_LoginResult::Fail_OSSAccountTypeNotSufficient:
         LogOff(false); // The plugin prompts the user to upgrade their account, so we don't need to show an error

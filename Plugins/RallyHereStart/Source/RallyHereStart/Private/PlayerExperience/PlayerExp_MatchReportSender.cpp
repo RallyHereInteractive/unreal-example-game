@@ -72,10 +72,10 @@ void UPlayerExp_MatchReportSender::RequestSendReport(class UGameInstance* GameIn
 		auto* Settings = GetDefault<URH_IntegrationSettings>();
 		check(Settings != nullptr);
 
-		const auto SandboxId = RHIntegration.GetSandboxId();
+		const auto SandboxId = RHIntegration.GetEnvironmentId();
 
 		// check the main sandbox configuration
-		const auto* Sandbox = Settings->GetSandboxConfiguration(SandboxId);
+		const auto* Sandbox = Settings->GetEnvironmentConfiguration(SandboxId);
 		if (Sandbox != nullptr && !Sandbox->PlayerExperienceReportURL.IsEmpty())
 		{
 			ReportURL = Sandbox->PlayerExperienceReportURL;
@@ -83,7 +83,7 @@ void UPlayerExp_MatchReportSender::RequestSendReport(class UGameInstance* GameIn
 		else
 		{
 			// if main sandbox was not configured, check the default as a fallback
-			Sandbox = &Settings->DefaultSandboxConfiguration;
+			Sandbox = &Settings->DefaultEnvironmentConfiguration;
 			if (Sandbox != nullptr && !Sandbox->PlayerExperienceReportURL.IsEmpty())
 			{
 				ReportURL = Sandbox->PlayerExperienceReportURL;
