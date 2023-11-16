@@ -386,7 +386,7 @@ void URHPartyManager::UpdatePartyInvites(TArray<URH_InvitedSession*> pSessions)
 								FAuthContextPtr LocalPlayerAuthContext = LocalPlayerInfo->GetAuthContext();
 								FAuthContextPtr InviterAuthContext = Inviter->GetAuthContext();
 								if (LocalPlayerAuthContext.IsValid() && InviterAuthContext.IsValid()
-									&& LocalPlayerAuthContext->GetLoginResult().GetValue().PortalId == InviterAuthContext->GetLoginResult().GetValue().PortalId)
+									&& LocalPlayerAuthContext->GetLoginResult().GetValue().GetPortalId() == InviterAuthContext->GetLoginResult().GetValue().GetPortalId())
 								{
 									pSession->Leave();
 
