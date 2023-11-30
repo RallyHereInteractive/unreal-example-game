@@ -413,7 +413,7 @@ void UPlayerExp_MatchTracker::StartMatch()
 		auto* InstanceData = Session->GetInstanceData();
 		if (InstanceData != nullptr)
 		{
-			InstanceId = InstanceData->GetInstanceId(TEXT(""));
+			InstanceId = InstanceData->GetInstanceId();
 			AllocationId = InstanceData->GetAllocationId(TEXT(""));
 		}		
 	}
