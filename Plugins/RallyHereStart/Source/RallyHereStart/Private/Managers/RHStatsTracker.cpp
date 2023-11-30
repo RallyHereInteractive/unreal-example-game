@@ -230,11 +230,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 
 						if (const FRHAPI_InstanceInfo* InstanceData = ActiveSession->GetInstanceData())
 						{
-							FString InstanceId;
-							if ((InstanceData)->GetInstanceId(InstanceId))
-							{
-								Attributes.Add(FAnalyticsEventAttribute(TEXT("instanceId"), InstanceId));
-							}
+							Attributes.Add(FAnalyticsEventAttribute(TEXT("instanceId"), InstanceData->GetInstanceId()));
 						}
 
 						FString RegionId;
