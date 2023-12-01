@@ -21,6 +21,11 @@
 #endif
 #include "GameFramework/RHGameInstance.h"
 
+#include "RH_LocalPlayerSessionSubsystem.h"
+#include "RH_LocalPlayerSubsystem.h"
+#include "Net/OnlineEngineInterface.h"
+#include "Shared/HUD/RHHUDCommon.h"
+
 DEFINE_LOG_CATEGORY_STATIC(LogFRHSonyMatch, Log, All);
 
 static int32 GSonyMatchSendCrossPlayNames = 0;
@@ -242,6 +247,11 @@ void ARHPlayerController::ServerUpdateSonyMatchOwnerEligibility_Implementation(b
 void ARHPlayerController::SetSonyMatchId(const FString& InSonyMatchId)
 {
 	SonyMatchId = InSonyMatchId;
+
+	if (ARHPlayerState* RHPlayerState = Cast<ARHPlayerState>(PlayerState))
+	{
+		RHPlayerState->SavedSonyMatchId = SonyMatchId;
+	}
 }
 
 void ARHPlayerController::ClientUpdateSonyMatchData_Implementation(const FString& InMatchId, const FString& InActivityId)
@@ -253,6 +263,12 @@ void ARHPlayerController::ClientUpdateSonyMatchData_Implementation(const FString
 	}
 
 	bIsSonyMatchOwner = !SonyActivityId.IsEmpty() || !SonyMatchId.IsEmpty();
+
+	if (ARHPlayerState* RHPlayerState = Cast<ARHPlayerState>(PlayerState))
+	{
+		RHPlayerState->SavedSonyActivityId = SonyActivityId;
+		RHPlayerState->SavedSonyMatchId = SonyMatchId;
+	}
 
 	if (bIsSonyMatchOwner)
 	{
@@ -366,6 +382,17 @@ void ARHPlayerController::UpdateSonyMatchRoster()
 	AGameStateBase* GameState = CurWorld->GetGameState();
 	if (!GameState)
 	{
+		if (QueuedSonyMatchState == ESonyMatchState::MatchIdRequested)
+		{
+			if (UWorld* MyWorld = GetWorld())
+			{
+				MyWorld->GameStateSetEvent.AddWeakLambda(this, [this](AGameStateBase* GameState)
+					{
+						RequestUpdateSonyMatchState(ESonyMatchState::MatchIdRequested);
+					});
+			}
+		}
+
 		return;
 	}
 
@@ -382,10 +409,27 @@ void ARHPlayerController::UpdateSonyMatchRoster()
 
 		const bool bIsABot = CurPlayerState->IsABot();
 
-		const FUniqueNetIdRepl& PlayerUniqueId = CurPlayerState->GetUniqueId();
+		FUniqueNetIdRepl PlayerUniqueId = CurPlayerState->GetUniqueId();
 		if (!PlayerUniqueId.IsValid() && !bIsABot)
 		{
-			continue;
+			if (const ARHPlayerState* RHPlayerState = Cast<ARHPlayerState>(CurPlayerState))
+			{
+				if (const URH_PlayerInfo* PlayerInfo = RHPlayerState->GetPlayerInfo(Cast<ARHHUDCommon>(MyHUD.Get())))
+				{
+					for (const auto& PlatformId : PlayerInfo->GetPlayerPlatformIds())
+					{
+						if (PlatformId.PlatformType == ERHAPI_Platform::Psn)
+						{
+							PlayerUniqueId = UOnlineEngineInterface::Get()->CreateUniquePlayerIdWrapper(PlatformId.UserId);
+						}
+					}
+				}
+			}
+
+			if (!PlayerUniqueId.IsValid())
+			{
+				continue;
+			}
 		}
 
 		TSharedRef<const FUniqueNetId> UniqueId = bIsABot ? CreateNetIdForBot(CurPlayerState) : PlayerUniqueId->AsShared();
@@ -394,6 +438,17 @@ void ARHPlayerController::UpdateSonyMatchRoster()
 		GameMatchPlayer.bIsNpc = bIsABot;
 		GameMatchPlayer.PlayerId = UniqueId;
 		GameMatchPlayer.PlayerName = CurPlayerState->GetPlayerName();
+
+		if (GameMatchPlayer.PlayerName.IsEmpty() || GameMatchPlayer.PlayerName == TEXT("Player"))
+		{
+			if (const ARHPlayerState* RHPlayerState = Cast<ARHPlayerState>(CurPlayerState))
+			{
+				if (const URH_PlayerInfo* PlayerInfo = RHPlayerState->GetPlayerInfo(Cast<ARHHUDCommon>(MyHUD.Get())))
+				{
+					PlayerInfo->GetLastKnownDisplayName(GameMatchPlayer.PlayerName);
+				}
+			}
+		}
 
 		FName CurPlayerOssType = UniqueId->GetType();
 
@@ -414,7 +469,25 @@ void ARHPlayerController::UpdateSonyMatchRoster()
 		if (!GameMatchPlayer.PlayerName.IsEmpty())
 		{
 			// Find the team we belong to
-			int32 TeamNum = 0;
+			int32 TeamNum = INDEX_NONE;
+
+			if (const ARHPlayerState* RHPlayerState = Cast<ARHPlayerState>(CurPlayerState))
+			{
+				if (const ARHHUDCommon* RHHUD = Cast<ARHHUDCommon>(MyHUD))
+				{
+					if (const URH_LocalPlayerSubsystem* LPS = RHHUD->GetLocalPlayerSubsystem())
+					{
+						if (const URH_LocalPlayerSessionSubsystem* LPSS = LPS->GetSessionSubsystem())
+						{
+							if (const URH_JoinedSession* JoinedSession = LPSS->GetFirstActiveSession())
+							{
+								TeamNum = JoinedSession->GetSessionPlayerTeamId(RHPlayerState->GetRHPlayerUuid());
+							}
+						}
+					}
+				}
+			}
+
 			if (TeamNum > INDEX_NONE)
 			{
 				bool bFoundTeam = false;
@@ -521,7 +594,7 @@ void ARHPlayerController::RequestUpdateSonyMatchState(ESonyMatchState NewSonyMat
 			MatchData.InactivityExpirationTimeSeconds = GSonyMatchInactivityTimeoutSeconds;
 
 			FOnCreateGameMatchComplete CreateGameMatchCompleteDelegate = FOnCreateGameMatchComplete::CreateWeakLambda(this,
-				[this, LocalUserId, GameMatches](const FUniqueNetId& InLocalUserId, const FString& MatchId, const FOnlineError& Result)
+				[this](const FUniqueNetId& InLocalUserId, const FString& MatchId, const FOnlineError& Result)
 				{
 					if (Result.WasSuccessful())
 					{
@@ -604,7 +677,7 @@ void ARHPlayerController::RequestUpdateSonyMatchState(ESonyMatchState NewSonyMat
 			FOnGameMatchReportComplete OnGameMatchReportComplete = FOnGameMatchReportComplete::CreateLambda(
 				[](const FUniqueNetId& LocalUserId, const FOnlineError& Result)
 				{
-					HandleSonyMatchUpdateError(TEXT("UpdateGameMatchDetails"), Result);
+					HandleSonyMatchUpdateError(TEXT("ReportGameMatchResults"), Result);
 				});
 			GameMatches->ReportGameMatchResults(*LocalUserId, SonyMatchId, SonyMatchResult, OnGameMatchReportComplete);
 			SonyMatchState = ESonyMatchState::Complete; // Prevent further updates

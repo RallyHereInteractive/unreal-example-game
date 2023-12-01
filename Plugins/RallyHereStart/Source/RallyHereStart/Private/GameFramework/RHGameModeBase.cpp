@@ -68,7 +68,29 @@ void ARHGameModeBase::HandleMatchIdUpdateSony(const FUniqueNetIdRepl& InRepId, c
 	if (InRepId == SonyMatchData.MatchOwner)
 	{
 		SonyMatchData.MatchId = InMatchId;
+
+		if (const ARHPlayerController* MatchOwner = GetPlayerControllerFromUniqueId(InRepId))
+		{
+			if (ARHPlayerState* MatchOwnerPlayerState = Cast<ARHPlayerState>(MatchOwner->PlayerState))
+			{
+				MatchOwnerPlayerState->SavedSonyMatchId = InMatchId;
+			}
+		}
 	}
+}
+
+ARHPlayerController* ARHGameModeBase::GetPlayerControllerFromUniqueId(const FUniqueNetIdRepl& InUniqueId) const
+{
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		APlayerController* pPC = Iterator->Get();
+		if (pPC != nullptr && pPC->PlayerState != nullptr && pPC->PlayerState->GetUniqueId() == InUniqueId)
+		{
+			return Cast<ARHPlayerController>(pPC);
+		}
+	}
+
+	return nullptr;
 }
 
 void ARHGameModeBase::DetermineSonyMatchDataOwner()
@@ -77,20 +99,6 @@ void ARHGameModeBase::DetermineSonyMatchDataOwner()
 	{
 		return;
 	}
-
-	auto GetPlayerControllerFromUniqueId = [&](const FUniqueNetIdRepl& InUniqueId) -> ARHPlayerController*
-	{
-		for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-		{
-			APlayerController* pPC = Iterator->Get();
-			if (pPC != nullptr && pPC->PlayerState != nullptr && pPC->PlayerState->GetUniqueId() == InUniqueId)
-			{
-				return Cast<ARHPlayerController>(pPC);
-			}
-		}
-
-		return nullptr;
-	};
 
 	ARHPlayerController* PreviousMatchOwner = GetPlayerControllerFromUniqueId(SonyMatchData.MatchOwner);
 
@@ -151,6 +159,12 @@ void ARHGameModeBase::DetermineSonyMatchDataOwner()
 		if (PreviousMatchOwner && AvailableMatchOwner != PreviousMatchOwner)
 		{
 			PreviousMatchOwner->ClientUpdateSonyMatchData(FString(), FString());
+
+			if (ARHPlayerState* RHPlayerState = Cast<ARHPlayerState>(PreviousMatchOwner->PlayerState))
+			{
+				RHPlayerState->SavedSonyActivityId = FString();
+				RHPlayerState->SavedSonyMatchId = FString();
+			}
 		}
 
 		check(AvailableMatchOwner->PlayerState != nullptr); // PlayerState is nullchecked as part of finding AvailableMatchOwner
@@ -159,6 +173,12 @@ void ARHGameModeBase::DetermineSonyMatchDataOwner()
 		if (GetNetMode() != NM_Standalone && SonyActivityIdNetworkedMatch.Len() > 0)
 		{
 			AvailableMatchOwner->ClientUpdateSonyMatchData(SonyMatchData.MatchId, SonyActivityIdNetworkedMatch);
+
+			if (ARHPlayerState* RHPlayerState = Cast<ARHPlayerState>(AvailableMatchOwner->PlayerState))
+			{
+				RHPlayerState->SavedSonyActivityId = SonyActivityIdNetworkedMatch;
+				RHPlayerState->SavedSonyMatchId = SonyMatchData.MatchId;
+			}
 		}
 		else
 		{

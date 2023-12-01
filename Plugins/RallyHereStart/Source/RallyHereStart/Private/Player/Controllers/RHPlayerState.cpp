@@ -21,6 +21,14 @@ void ARHPlayerState::BeginPlay()
 {
     Super::BeginPlay();
 
+	if (ARHPlayerController* PlayerController = Cast<ARHPlayerController>(GetOwningController()))
+	{
+		if (!SavedSonyMatchId.IsEmpty() || !SavedSonyActivityId.IsEmpty())
+		{
+			PlayerController->ClientUpdateSonyMatchData(SavedSonyMatchId, SavedSonyActivityId);
+		}
+	}
+
 	UWorld* World = GetWorld();
 	if (World == nullptr)
 	{
@@ -171,5 +179,8 @@ void ARHPlayerState::CopyProperties(APlayerState* PlayerState)
 	{
 		OtherPS->SetRHPlayerId(GetRHPlayerId());
 		OtherPS->SetRHPlayerUuid(GetRHPlayerUuid());
+
+		OtherPS->SavedSonyActivityId = SavedSonyActivityId;
+		OtherPS->SavedSonyMatchId = SavedSonyMatchId;
 	}
 }
