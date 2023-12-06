@@ -198,7 +198,11 @@ void URHWidget::SkipToEndTickAnimation(FName AnimName)
 
 bool URHWidget::GetTickAnimationInfo(FName AnimName, FTickAnimationParams& OutAnimParams)
 {
-	return TickAnimations->GetAnimationInfo(AnimName, OutAnimParams);
+	if (TickAnimations != nullptr)
+	{
+		return TickAnimations->GetAnimationInfo(AnimName, OutAnimParams);
+	}
+	return false;
 }
 
 // ==========================================
