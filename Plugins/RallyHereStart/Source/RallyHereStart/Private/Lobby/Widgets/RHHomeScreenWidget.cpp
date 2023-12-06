@@ -14,6 +14,8 @@
 
 void URHHomeScreenWidget::InitializeWidget_Implementation()
 {
+	Super::InitializeWidget_Implementation();
+
 	if (MyHud != nullptr)
 	{
 		if (URH_LocalPlayerSubsystem* LPSS = MyHud->GetLocalPlayerSubsystem())
