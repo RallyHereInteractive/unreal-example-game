@@ -136,6 +136,15 @@ void URHPlayerInfoDisplay::GetPlayerLevel(const FRH_GetInventoryCountBlock& Dele
 
 void URHPlayerInfoDisplay::GetPlayerPlatform(const FRH_GetPlayerPlatformDynamicDelegate& Delegate)
 {
+	if (MyRHFriend)
+	{
+		if (const auto* MyPlatformFriend = MyRHFriend->GetPlatformFriend(URHUIBlueprintFunctionLibrary::GetLoggedInPlatformId(MyHud.Get())))
+		{
+			Delegate.ExecuteIfBound(URHUIBlueprintFunctionLibrary::ConvertPlatformTypeToDisplayType(MyHud.Get(), MyPlatformFriend->GetPlatform()));
+			return;
+		}
+	}
+
 	GetPlayerPresence(FRH_OnRequestPlayerPresenceDelegate::CreateUObject(this, &URHPlayerInfoDisplay::OnGetPlayerPlatformPresenceResponse, Delegate));
 }
 
@@ -145,7 +154,9 @@ void URHPlayerInfoDisplay::OnGetPlayerPlatformPresenceResponse(bool bSuccessful,
 	{
 		if (!PlayerPresence->Platform.IsEmpty())
 		{
-			Delegate.ExecuteIfBound(URHUIBlueprintFunctionLibrary::ConvertPlatformTypeToDisplayType(MyHud.Get(), ERHAPI_Platform(FCString::Atoi(*PlayerPresence->Platform))));
+			ERHAPI_Platform PlayerPlatform;
+			EnumFromString(PlayerPresence->Platform, PlayerPlatform);
+			Delegate.ExecuteIfBound(URHUIBlueprintFunctionLibrary::ConvertPlatformTypeToDisplayType(MyHud.Get(), PlayerPlatform));
 			return;
 		}
 
@@ -173,7 +184,7 @@ void URHPlayerInfoDisplay::OnGetPlayerPlatformPlatformsResponse(bool bSuccess, c
 	Delegate.ExecuteIfBound(URHUIBlueprintFunctionLibrary::ConvertPlatformTypeToDisplayType(MyHud.Get(), ERHAPI_Platform::Anon));
 }
 
-void URHPlayerInfoDisplay::GetPlayerPresence(const FRH_OnRequestPlayerPresenceDelegate& Delegate)
+void URHPlayerInfoDisplay::GetPlayerPresence(const FRH_OnRequestPlayerPresenceDelegate& Delegate) const
 {
 	if (MyPlayerInfo == nullptr || MyPlayerInfo->GetPresence() == nullptr)
 	{
@@ -181,7 +192,7 @@ void URHPlayerInfoDisplay::GetPlayerPresence(const FRH_OnRequestPlayerPresenceDe
 		return;
 	}
 
-	MyPlayerInfo->GetPresence()->RequestUpdate();
+	MyPlayerInfo->GetPresence()->RequestUpdate(false, Delegate);
 }
 
 URH_PlayerInfoSubsystem* URHPlayerInfoDisplay::GetRH_PlayerInfoSubsystem() const

@@ -40,6 +40,9 @@ public:
 	void GetPlayerPlatform(const FRH_GetPlayerPlatformDynamicDelegate& Delegate);
 
 protected:
+	UPROPERTY(BlueprintReadWrite)
+	URH_RHFriendAndPlatformFriend* MyRHFriend;
+
 	UPROPERTY(BlueprintReadOnly)
 	URH_PlayerInfo* MyPlayerInfo;
 
@@ -52,7 +55,7 @@ protected:
 	UFUNCTION()
 	void OnGetPlayerPlatformPlatformsResponse(bool bSuccess, const TArray<URH_PlayerPlatformInfo*>& Platforms, const FRH_GetPlayerPlatformDynamicDelegate Delegate);
 
-	void GetPlayerPresence(const FRH_OnRequestPlayerPresenceDelegate& Delegate);
+	void GetPlayerPresence(const FRH_OnRequestPlayerPresenceDelegate& Delegate) const;
 
 	UFUNCTION()
 	void RHUpdateFriends(URH_RHFriendAndPlatformFriend* Friend);

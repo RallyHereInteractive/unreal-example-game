@@ -11,6 +11,24 @@
 #include "Lobby/Widgets/RHWhatsNewModal.h"
 #include "Lobby/Widgets/RHHomeScreenWidget.h"
 
+
+void URHHomeScreenWidget::InitializeWidget_Implementation()
+{
+	if (MyHud != nullptr)
+	{
+		if (URH_LocalPlayerSubsystem* LPSS = MyHud->GetLocalPlayerSubsystem())
+		{
+			if (URH_LocalPlayerLoginSubsystem* LPLS = LPSS->GetLoginSubsystem())
+			{
+				LPLS->OnCrossplaySettingChanged.AddWeakLambda(this, [this]()
+					{
+						OnCrossplaySettingChanged();
+					});
+			}
+		}
+	}
+}
+
 void URHHomeScreenWidget::CheckForOnShownEvents()
 {
 	if (CheckForVoucherRedemption())
