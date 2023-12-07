@@ -9,6 +9,9 @@ class RALLYHERESTART_API URHHomeScreenWidget : public URHWidget
 {
     GENERATED_BODY()
 
+public:
+	virtual void InitializeWidget_Implementation() override;
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void CheckForOnShownEvents();
@@ -16,4 +19,7 @@ protected:
 	bool CheckForVoucherRedemption();
 
 	bool CheckForWhatsNewModal();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnCrossplaySettingChanged();
 };

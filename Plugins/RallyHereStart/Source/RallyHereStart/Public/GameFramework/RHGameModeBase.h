@@ -98,6 +98,9 @@ public:
 	// Checks if a player state is stale
 	virtual bool IsPlayerStateStale(const APlayerState* InPlayerState) const;
 
+	// Attempt to find the Player Controller based on the Unique Net Id
+	class ARHPlayerController* GetPlayerControllerFromUniqueId(const FUniqueNetIdRepl& InUniqueId) const;
+
 	// Attempt to find the Player Id that a controller represents (for both humans and backfilling bots).
 	static FGuid GetRHPlayerUuid(AController* C);
 	static FGuid GetRHPlayerUuidFromPlayer(const UPlayer* pPlayer);

@@ -35,6 +35,11 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > &OutLifetimeProps) const override;
 
+	UPROPERTY()
+	FString SavedSonyActivityId;
+	UPROPERTY()
+	FString SavedSonyMatchId;
+
 protected:
     virtual void CopyProperties(APlayerState* PlayerState) override;
 
