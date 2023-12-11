@@ -15,6 +15,7 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
 
 	UFUNCTION(BlueprintPure, Category = "Match Timer")
 	virtual float GetMatchTimeElapsed() const;
@@ -31,4 +32,12 @@ protected:
 
 	UPROPERTY()
 	class URHExampleStatsMgr* StatsMgr;
+
+	UPROPERTY(config)
+	float ShutdownOnEmptyDelay;
+
+	FTimerHandle EmptyServerTimerHandle;
+
+	virtual void CheckEmptyTimer(bool bForceStop = false);
+	virtual void EmptyTimer();
 };

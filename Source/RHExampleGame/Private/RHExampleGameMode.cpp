@@ -15,6 +15,8 @@ ARHExampleGameMode::ARHExampleGameMode(const FObjectInitializer& ObjectInitializ
 	StatsMgr->SetGameMode(this);
 	MatchStartTime = -1.0f;
 	MatchEndTime = 0.0f;
+
+	ShutdownOnEmptyDelay = 20 * 60; // 20 minutes
 }
 
 void ARHExampleGameMode::PostInitializeComponents()
@@ -49,6 +51,17 @@ void ARHExampleGameMode::PostLogin(APlayerController* NewPlayer)
 			}
 		}
 	}
+
+	// if a new player has joined, stop the empty timer
+	CheckEmptyTimer();
+}
+
+void ARHExampleGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	// if a player has left, check if we need to start the empty timer
+	CheckEmptyTimer();
 }
 
 float ARHExampleGameMode::GetMatchTimeElapsed() const
@@ -72,11 +85,14 @@ void ARHExampleGameMode::HandleMatchHasStarted()
 
 	MatchStartTime = MyWorld->GetTimeSeconds();
 
+	bool bHasPlayers = false;
+
 	// Begin Stats Tracking
 	for (FConstControllerIterator It = MyWorld->GetControllerIterator(); It; ++It)
 	{
 		if (ARHPlayerController* const pRHPlayerController = Cast<ARHPlayerController>((*It).Get()))
 		{
+			bHasPlayers = true;
 			ARHPlayerState* pRHPlayerState = pRHPlayerController->GetPlayerState<ARHPlayerState>();
 			if (pRHPlayerState != nullptr && StatsMgr != nullptr)
 			{
@@ -84,6 +100,8 @@ void ARHExampleGameMode::HandleMatchHasStarted()
 			}
 		}
 	}
+
+	CheckEmptyTimer();
 
 	Super::HandleMatchHasStarted();
 }
@@ -94,6 +112,9 @@ void ARHExampleGameMode::HandleMatchHasEnded()
 	check(MyWorld != nullptr);
 
 	MatchEndTime = MyWorld->GetTimeSeconds();
+
+	// empty empty timer is cleared, even if it's not active
+	CheckEmptyTimer(true);
 
 	// End Stats Tracking
 	if (StatsMgr != nullptr)
@@ -114,4 +135,32 @@ void ARHExampleGameMode::HandleMatchHasEnded()
 	}
 	
 	Super::HandleMatchHasEnded();
+}
+
+void ARHExampleGameMode::CheckEmptyTimer(bool bForceStop)
+{
+	if (GetNumPlayers() == 0 && !bForceStop)
+	{
+		// if timer delay is set and is not active, activate it
+		if (ShutdownOnEmptyDelay > 0 && EmptyServerTimerHandle.IsValid())
+		{
+			GetWorldTimerManager().SetTimer(EmptyServerTimerHandle, this, &ARHExampleGameMode::EmptyTimer, ShutdownOnEmptyDelay, false);
+		}
+	}
+	else
+	{
+		// stop the timer if it is running
+		if (EmptyServerTimerHandle.IsValid())
+		{
+			GetWorldTimerManager().ClearTimer(EmptyServerTimerHandle);
+			EmptyServerTimerHandle.Invalidate();
+		}
+	}
+}
+
+void ARHExampleGameMode::EmptyTimer()
+{
+	// if empty timer goes off, end the match
+	UE_LOG(RHExampleGame, Warning, TEXT("EmptyTimer triggered due to not enough players, ending match"));
+	EndMatch();
 }
