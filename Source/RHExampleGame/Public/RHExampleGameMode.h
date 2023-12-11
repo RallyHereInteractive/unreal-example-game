@@ -21,8 +21,10 @@ public:
 	virtual float GetMatchTimeElapsed() const;
 
 protected:
+	virtual void HandleMatchIsWaitingToStart() override;
 	virtual void HandleMatchHasStarted() override;
 	virtual void HandleMatchHasEnded() override;
+	virtual void HandleMatchAborted() override;
 
 	UPROPERTY(VisibleInstanceOnly, Category = Time)
 	float MatchStartTime;

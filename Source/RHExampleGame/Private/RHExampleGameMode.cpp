@@ -78,6 +78,13 @@ float ARHExampleGameMode::GetMatchTimeElapsed() const
 	return 0.0f;
 }
 
+void ARHExampleGameMode::HandleMatchIsWaitingToStart()
+{
+	Super::HandleMatchIsWaitingToStart();
+
+	CheckEmptyTimer();
+}
+
 void ARHExampleGameMode::HandleMatchHasStarted()
 {
 	UWorld* MyWorld = GetWorld();
@@ -101,9 +108,9 @@ void ARHExampleGameMode::HandleMatchHasStarted()
 		}
 	}
 
-	CheckEmptyTimer();
-
 	Super::HandleMatchHasStarted();
+
+	CheckEmptyTimer();
 }
 
 void ARHExampleGameMode::HandleMatchHasEnded()
@@ -137,13 +144,43 @@ void ARHExampleGameMode::HandleMatchHasEnded()
 	Super::HandleMatchHasEnded();
 }
 
+void ARHExampleGameMode::HandleMatchAborted()
+{
+	UWorld* MyWorld = GetWorld();
+	check(MyWorld != nullptr);
+
+	// empty empty timer is cleared, even if it's not active
+	CheckEmptyTimer(true);
+
+	// End Stats Tracking
+	if (StatsMgr != nullptr)
+	{
+		for (FConstControllerIterator It = MyWorld->GetControllerIterator(); It; ++It)
+		{
+			if (ARHPlayerController* const pRHPlayerController = Cast<ARHPlayerController>((*It).Get()))
+			{
+				ARHPlayerState* pRHPlayerState = pRHPlayerController->GetPlayerState<ARHPlayerState>();
+				if (pRHPlayerState != nullptr)
+				{
+					StatsMgr->EndTracker(pRHPlayerState);
+				}
+			}
+		}
+
+		StatsMgr->FinishStats(this);
+	}
+
+	Super::HandleMatchAborted();
+}
+
 void ARHExampleGameMode::CheckEmptyTimer(bool bForceStop)
 {
 	if (GetNumPlayers() == 0 && !bForceStop)
 	{
 		// if timer delay is set and is not active, activate it
-		if (ShutdownOnEmptyDelay > 0 && EmptyServerTimerHandle.IsValid())
+		if (ShutdownOnEmptyDelay > 0 && !EmptyServerTimerHandle.IsValid())
 		{
+			UE_LOG(RHExampleGame, Log, TEXT("Starting empty timer (Delay = %ds"), ShutdownOnEmptyDelay);
 			GetWorldTimerManager().SetTimer(EmptyServerTimerHandle, this, &ARHExampleGameMode::EmptyTimer, ShutdownOnEmptyDelay, false);
 		}
 	}
@@ -152,6 +189,7 @@ void ARHExampleGameMode::CheckEmptyTimer(bool bForceStop)
 		// stop the timer if it is running
 		if (EmptyServerTimerHandle.IsValid())
 		{
+			UE_LOG(RHExampleGame, Log, TEXT("Clearing empty timer (bForceStop = %d)"), bForceStop ? 1 : 0);
 			GetWorldTimerManager().ClearTimer(EmptyServerTimerHandle);
 			EmptyServerTimerHandle.Invalidate();
 		}

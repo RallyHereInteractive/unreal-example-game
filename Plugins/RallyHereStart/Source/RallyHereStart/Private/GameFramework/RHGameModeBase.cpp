@@ -425,6 +425,46 @@ void ARHGameModeBase::HandleMatchHasEnded()
 	}
 }
 
+void ARHGameModeBase::HandleMatchAborted()
+{
+	Super::HandleMatchAborted();
+
+	// mark session as closed to prevent new joins
+	auto* GameInstance = GetGameInstance();
+	if (GameInstance != nullptr)
+	{
+		auto* GISS = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>();
+		if (GISS != nullptr)
+		{
+			auto GISession = GISS->GetSessionSubsystem();
+			if (GISession != nullptr && GISession->GetActiveSession() != nullptr)
+			{
+				/* This will mark the session to not be joinable.  Unfortunately, closed will cause a dedicated server to close itself out and recycle itself, we will need a new state to handle that
+				auto* RHSession = GISession->GetActiveSession();
+
+				FRHAPI_InstanceInfoUpdate InstanceInfo = RHSession->GetInstanceUpdateInfoDefaults();
+				InstanceInfo.SetJoinStatus(ERHAPI_InstanceJoinableStatus::Closed);
+				RHSession->UpdateInstanceInfo(InstanceInfo);
+				*/
+			}
+		}
+	}
+
+	// start timer for instance shutdown (network loop)
+	if (MatchSpindownDelay > 0.f)
+	{
+		GetWorldTimerManager().SetTimer(
+			ShutdownTimer,
+			this,
+			&ARHGameModeBase::FinalizeMatchEnded,
+			MatchSpindownDelay);
+	}
+	else
+	{
+		FinalizeMatchEnded();
+	}
+}
+
 void ARHGameModeBase::StartMatch()
 {
 	Super::StartMatch();
