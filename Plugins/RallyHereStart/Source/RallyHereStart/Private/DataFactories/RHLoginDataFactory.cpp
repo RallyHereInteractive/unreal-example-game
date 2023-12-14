@@ -165,15 +165,6 @@ void URHLoginDataFactory::RecordLoginState(ERHLoginState NewState)
     if (LoginState != NewState)
     {
 		auto RH_LoginSubsystem = GetRH_LocalPlayerLoginSubsystem();
-		auto RH_LPSubsystem = RH_LoginSubsystem != nullptr ? RH_LoginSubsystem->GetLocalPlayerSubsystem() : nullptr;
-
-		if (NewState == ERHLoginState::ELS_LoggingIn)
-		{
-			if (RH_LPSubsystem != nullptr && RH_LPSubsystem->GetAnalyticsProvider().IsValid())
-			{
-				RH_LPSubsystem->GetAnalyticsProvider()->RecordEvent(TEXT("loginRequested"));
-			}
-		}
 
 		if (NewState == ERHLoginState::ELS_LoggedIn)
 		{
