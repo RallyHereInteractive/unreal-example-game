@@ -135,6 +135,7 @@ protected:
     virtual void HandleMatchIsWaitingToStart() override;
     virtual void HandleMatchHasStarted() override;
     virtual void HandleMatchHasEnded() override;
+    virtual void HandleMatchAborted() override;
 
 	 /** This is where you should notify all players that you have ended the game, and send potential match results */
     virtual void AllPlayersEndGame();
