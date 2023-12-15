@@ -200,5 +200,18 @@ void ARHExampleGameMode::EmptyTimer()
 {
 	// if empty timer goes off, end the match
 	UE_LOG(RHExampleGame, Warning, TEXT("EmptyTimer triggered due to not enough players, ending match"));
-	EndMatch();
+	if (!HasMatchStarted())
+	{
+		// if the match hasn't started yet, abort it
+		AbortMatch();
+	}
+	else if (!HasMatchEnded())
+	{
+		// if the match has started and not ended, end it
+		EndMatch();
+	}
+	else
+	{
+		// match has already ended and should already have shutdown logic running
+	}
 }
