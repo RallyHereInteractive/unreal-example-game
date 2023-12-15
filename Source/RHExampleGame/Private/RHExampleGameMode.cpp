@@ -120,7 +120,7 @@ void ARHExampleGameMode::HandleMatchHasEnded()
 
 	MatchEndTime = MyWorld->GetTimeSeconds();
 
-	// empty empty timer is cleared, even if it's not active
+	// empty timer is cleared, even if it's not active
 	CheckEmptyTimer(true);
 
 	// End Stats Tracking
@@ -149,7 +149,7 @@ void ARHExampleGameMode::HandleMatchAborted()
 	UWorld* MyWorld = GetWorld();
 	check(MyWorld != nullptr);
 
-	// empty empty timer is cleared, even if it's not active
+	// empty timer is cleared, even if it's not active
 	CheckEmptyTimer(true);
 
 	// End Stats Tracking
@@ -180,7 +180,7 @@ void ARHExampleGameMode::CheckEmptyTimer(bool bForceStop)
 		// if timer delay is set and is not active, activate it
 		if (ShutdownOnEmptyDelay > 0 && !EmptyServerTimerHandle.IsValid())
 		{
-			UE_LOG(RHExampleGame, Log, TEXT("Starting empty timer (Delay = %ds"), ShutdownOnEmptyDelay);
+			UE_LOG(RHExampleGame, Log, TEXT("Starting empty timer (Delay = %d seconds)"), ShutdownOnEmptyDelay);
 			GetWorldTimerManager().SetTimer(EmptyServerTimerHandle, this, &ARHExampleGameMode::EmptyTimer, ShutdownOnEmptyDelay, false);
 		}
 	}
