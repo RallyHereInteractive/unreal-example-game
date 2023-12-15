@@ -544,9 +544,9 @@ void UPlayerExp_MatchTracker::UnregisterSessionCallbacks()
 void UPlayerExp_MatchTracker::OnSessionUpdated(URH_SessionView* InSession)
 {
 	auto* Session = GetSession();
-	check(InSession == Session);
 	if (Session != nullptr)
 	{
+		check(InSession == Session);
 		// If we are in a match, we need to check if any players have been added to the session
 		if (IsMatchInProgress())
 		{
