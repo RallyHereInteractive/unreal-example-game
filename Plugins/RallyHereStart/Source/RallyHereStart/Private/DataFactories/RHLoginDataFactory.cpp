@@ -419,7 +419,7 @@ void URHLoginDataFactory::OnRHLoginResponse(const FRH_LoginResult& LR)
         LoginEvent_ShowAgreements(LR.bMustAcceptEULA, LR.bMustAcceptTOS, LR.bMustAcceptPP);
         break;
     case ERHAPI_LoginResult::Fail_RHDenied:
-		LoginEvent_FailedClient(FText::Format(NSLOCTEXT("RHErrorMsg", "AccessDenied", "Access Denied ({0})"), *LR.RallyHereErrorCode));
+		LoginEvent_FailedClient(FText::Format(NSLOCTEXT("RHErrorMsg", "AccessDenied", "Access Denied ({0})"), FText::FromString(LR.RallyHereErrorCode)));
         break;
     case ERHAPI_LoginResult::Fail_RHUnknown:
 		LoginEvent_FailedClient(NSLOCTEXT("RHErrorMsg", "UnknownError", "Unknown Error"));
