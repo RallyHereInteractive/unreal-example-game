@@ -494,7 +494,7 @@ public:
     virtual void PostLogin() override;
     virtual void PostLogoff() override;
     virtual void GetSettingsFromPlayerAccount();
-	void OnGetPlayerCaseSetSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& Response);
+	void OnGetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response);
 
     void OnGameUserSettingsSaved();
 
@@ -505,7 +505,7 @@ public:
 public:
     UFUNCTION(BlueprintCallable, Category = "Settings")
     void SaveSettings();
-	void OnSetPlayerCaseSetSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& ResponseData);
+	void OnSetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData);
 
 	virtual bool GetSettingAsBool(FName Name, bool& OutBool) const override;
 	virtual bool GetSettingAsInt(FName Name, int32& OutInt) const override;

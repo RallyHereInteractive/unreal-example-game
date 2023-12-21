@@ -285,21 +285,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Loadout Data Factory", meta = (DisplayName = "Get Player Loadout Settings", AutoCreateRefTerm = "Delegate"))
 	void BLUEPRINT_RequestPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo, const FTimespan& StaleThreshold, bool bForceRefresh, const FRH_GetPlayerInfoLoadoutsDynamicDelegate& Delegate) { GetPlayerLoadoutSettings(PlayerInfo, StaleThreshold, bForceRefresh, Delegate); }
 	void GetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo, const FTimespan& StaleThreshold = FTimespan(), bool bForceRefresh = false, FRH_GetPlayerInfoLoadoutsBlock Delegate = FRH_GetPlayerInfoLoadoutsBlock());
-	void OnGetPlayerLoadoutSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, FRH_GetPlayerInfoLoadoutsBlock Delegate);
+	void OnGetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, FRH_GetPlayerInfoLoadoutsBlock Delegate);
 
 	// Request for Loadout Settings info for given PlayerInfo and Loadout Type
 	// Passed Delegate handles response when requested Loadout info is received, contains retrieved URH_PlayerLoadout* objects
 	UFUNCTION(BlueprintCallable, Category = "Loadout Data Factory", meta = (DisplayName = "Get Player Loadout Setting By Loadout Type", AutoCreateRefTerm = "Delegate"))
 	void BLUEPRINT_RequestPlayerLoadoutSettingByLoadoutType(URH_PlayerInfo* PlayerInfo, ERHLoadoutTypes LoadoutType, bool bCreateIfNeeded, const FTimespan& StaleThreshold, bool bForceRefresh, const FRH_GetPlayerInfoLoadoutDynamicDelegate& Delegate) { GetPlayerLoadoutSettingByLoadoutType(PlayerInfo, LoadoutType, bCreateIfNeeded, StaleThreshold, bForceRefresh, Delegate); }
 	void GetPlayerLoadoutSettingByLoadoutType(URH_PlayerInfo* PlayerInfo, ERHLoadoutTypes LoadoutType, bool bCreateIfNeeded, const FTimespan& StaleThreshold = FTimespan(), bool bForceRefresh = false, FRH_GetPlayerInfoLoadoutBlock Delegate = FRH_GetPlayerInfoLoadoutBlock());
-	void OnGetPlayerLoadoutSettingByLoadoutTypeResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, ERHLoadoutTypes LoadoutType, bool bCreateIfNeeded, FRH_GetPlayerInfoLoadoutBlock Delegate);
+	void OnGetPlayerLoadoutSettingByLoadoutTypeResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, ERHLoadoutTypes LoadoutType, bool bCreateIfNeeded, FRH_GetPlayerInfoLoadoutBlock Delegate);
 
 	// Request to update Loadout Settings for given PlayerInfo.
 	// Passed Delegate handles response received for whether or not the request was successful
 	UFUNCTION(BlueprintCallable, Category = "Loadout Data Factory", meta = (DisplayName = "Set Player Loadout Settings", AutoCreateRefTerm = "Delegate"))
 	void BLUEPRINT_SetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo, const TArray<URH_PlayerLoadout*>& Loadouts, const FRH_SetPlayerInfoLoadoutsDynamicDelegate& Delegate) { SetPlayerLoadoutSettings(PlayerInfo, Loadouts, Delegate); }
 	void SetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo, const TArray<URH_PlayerLoadout*>& Loadouts, FRH_SetPlayerInfoLoadoutsBlock Delegate = FRH_SetPlayerInfoLoadoutsBlock());
-	void OnSetPlayerLoadoutSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& ResponseData, URH_PlayerInfo* PlayerInfo, FRH_SetPlayerInfoLoadoutsBlock Delegate);
+	void OnSetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, URH_PlayerInfo* PlayerInfo, FRH_SetPlayerInfoLoadoutsBlock Delegate);
 
 	UFUNCTION(BlueprintPure, Category = "Loadout Data Factory")
 	UPlatformInventoryItem* GetDefaultItemForLoadoutSlotType(const ERHLoadoutSlotTypes SlotType);

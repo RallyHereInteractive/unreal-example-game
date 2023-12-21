@@ -252,7 +252,7 @@ void URHSettingsDataFactory::GetSettingsFromPlayerAccount()
     OnSettingsReceivedFromPlayerAccount.Broadcast();
 }
 
-void URHSettingsDataFactory::OnGetPlayerCaseSetSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& Response)
+void URHSettingsDataFactory::OnGetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response)
 {
 	TArray<FRHSettingConfigSet> UnpackagedCaseSettings;
 	UnpackageCaseSettings(Response.Content, UnpackagedCaseSettings);
@@ -469,7 +469,7 @@ void URHSettingsDataFactory::SaveSettings()
 	}
 }
 
-void URHSettingsDataFactory::OnSetPlayerCaseSetSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& ResponseData)
+void URHSettingsDataFactory::OnSetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData)
 {
 	if (bSuccess)
 	{
