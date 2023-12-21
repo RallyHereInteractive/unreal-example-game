@@ -64,7 +64,7 @@ void ARHPlayerState::OnRep_UniqueId()
 	{
 		UpdateMultiplayerFeaturesForOSS();
 
-		auto* PC = GetPlayerController();
+		auto* PC = URHUIBlueprintFunctionLibrary::GetLocalPlayerController(this, 0);
 		if (PC != nullptr && PC->Player != nullptr)
 		{
 			auto* LocalPlayer = Cast<URH_LocalPlayer>(PC->Player);
