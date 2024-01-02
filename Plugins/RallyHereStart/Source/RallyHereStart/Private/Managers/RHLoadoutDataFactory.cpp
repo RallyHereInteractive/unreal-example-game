@@ -578,7 +578,7 @@ bool URHLoadoutDataFactory::PackagePlayerLoadout(URH_PlayerLoadout* InLoadout, F
 	}
 
 	OutSettingData.V = InLoadout->GetV();
-	OutSettingData.SetValue(FRHAPI_JsonValue::CreateFromUnrealValue(NewValueObject));
+	OutSettingData.SetValue(FRHAPI_JsonValue(NewValueObject));
 	const auto NewValue = OutSettingData.GetValueOrNull();
 	return NewValue && NewValue->GetValue().IsValid();
 }
