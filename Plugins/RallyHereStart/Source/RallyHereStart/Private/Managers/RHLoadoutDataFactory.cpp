@@ -289,7 +289,7 @@ void URHLoadoutDataFactory::GetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo,
 	PlayerInfo->GetPlayerSettings("loadout", StaleThreshold, bForceRefresh, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnGetPlayerLoadoutSettingsResponse, PlayerInfo, Delegate));
 }
 
-void URHLoadoutDataFactory::OnGetPlayerLoadoutSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, FRH_GetPlayerInfoLoadoutsBlock Delegate)
+void URHLoadoutDataFactory::OnGetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, FRH_GetPlayerInfoLoadoutsBlock Delegate)
 {
 	if (bSuccess)
 	{
@@ -340,7 +340,7 @@ void URHLoadoutDataFactory::GetPlayerLoadoutSettingByLoadoutType(URH_PlayerInfo*
 	PlayerInfo->GetPlayerSettings("loadout", StaleThreshold, bForceRefresh, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnGetPlayerLoadoutSettingByLoadoutTypeResponse, PlayerInfo, LoadoutType, bCreateIfNeeded, Delegate));
 }
 
-void URHLoadoutDataFactory::OnGetPlayerLoadoutSettingByLoadoutTypeResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, ERHLoadoutTypes LoadoutType, bool bCreateIfNeeded, FRH_GetPlayerInfoLoadoutBlock Delegate)
+void URHLoadoutDataFactory::OnGetPlayerLoadoutSettingByLoadoutTypeResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, ERHLoadoutTypes LoadoutType, bool bCreateIfNeeded, FRH_GetPlayerInfoLoadoutBlock Delegate)
 {
 	if (bSuccess)
 	{
@@ -423,7 +423,7 @@ void URHLoadoutDataFactory::SetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo,
 	}
 }
 
-void URHLoadoutDataFactory::OnSetPlayerLoadoutSettingsResponse(bool bSuccess, FRH_PlayerSettingsDataWrapper& ResponseData, URH_PlayerInfo* PlayerInfo, FRH_SetPlayerInfoLoadoutsBlock Delegate)
+void URHLoadoutDataFactory::OnSetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, URH_PlayerInfo* PlayerInfo, FRH_SetPlayerInfoLoadoutsBlock Delegate)
 {
 	if (bSuccess && PlayerInfo != nullptr)
 	{
