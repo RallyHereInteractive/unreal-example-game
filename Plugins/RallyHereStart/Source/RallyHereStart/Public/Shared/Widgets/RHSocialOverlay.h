@@ -129,6 +129,9 @@ private:
 	void OnCloseTransitionComplete(UUMGSequencePlayer& SeqInfo);
 
 	UPROPERTY()
+	UUMGSequencePlayer* TransitionOutSequencePlayer;
+
+	UPROPERTY()
 	TArray<URHDataSocialCategory*> CategoriesList;
 
 	/// Updates optimization data

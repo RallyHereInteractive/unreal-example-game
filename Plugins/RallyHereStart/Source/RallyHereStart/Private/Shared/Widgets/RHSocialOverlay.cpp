@@ -257,6 +257,11 @@ void URHSocialOverlay::OnHide_Implementation()
 		}
 	}
 
+	if (TransitionOutSequencePlayer != nullptr)
+	{
+		TransitionOutSequencePlayer->OnSequenceFinishedPlaying().RemoveAll(this);
+	}
+
 	Super::OnHide_Implementation();
 }
 
@@ -894,15 +899,16 @@ void URHSocialOverlay::PlayTransition(class UWidgetAnimation* Animation, bool Tr
 {
 	if (TransitionOut)
 	{
-		if (UUMGSequencePlayer* seq = PlayAnimationReverse(Animation))
+		TransitionOutSequencePlayer = PlayAnimationReverse(Animation);
+		if (TransitionOutSequencePlayer != nullptr)
 		{
-			if (seq->GetPlaybackStatus() == EMovieScenePlayerStatus::Stopped)
+			if (TransitionOutSequencePlayer->GetPlaybackStatus() == EMovieScenePlayerStatus::Stopped)
 			{
-				OnCloseTransitionComplete(*seq);
+				OnCloseTransitionComplete(*TransitionOutSequencePlayer);
 			}
 			else
 			{
-				seq->OnSequenceFinishedPlaying().AddUObject(this, &URHSocialOverlay::OnCloseTransitionComplete);
+				TransitionOutSequencePlayer->OnSequenceFinishedPlaying().AddUObject(this, &URHSocialOverlay::OnCloseTransitionComplete);
 			}
 		}
 	}
@@ -914,6 +920,7 @@ void URHSocialOverlay::PlayTransition(class UWidgetAnimation* Animation, bool Tr
 
 void URHSocialOverlay::OnCloseTransitionComplete(UUMGSequencePlayer& SeqInfo)
 {
+	TransitionOutSequencePlayer = nullptr;
 	HideWidget();
 	CallOnHideSequenceFinished();
 }
