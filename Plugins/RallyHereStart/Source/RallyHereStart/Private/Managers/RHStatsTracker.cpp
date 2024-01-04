@@ -7,6 +7,7 @@
 
 #include "Analytics.h"
 #include "Interfaces/IAnalyticsProvider.h"
+#include "RH_Events.h"
 
 FRHStatsTracker::FRHStatsTracker(class URHStatsMgr* pMgr)
 	: m_pStatsMgr(pMgr)
@@ -168,21 +169,37 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 
 	URH_PlayerInfoSubsystem* PlayerInfoSubsystem = nullptr;
 	URH_JoinedSession* ActiveSession = nullptr;
+	UGameInstance* GameInstance = nullptr;
+	URH_GameInstanceSubsystem* GISubsystem = nullptr;
 
 	if (GetWorld() != nullptr)
 	{
-		if (auto GameInstance = GetWorld()->GetGameInstance())
+		GameInstance = GetWorld()->GetGameInstance();
+
+		if (GameInstance != nullptr)
 		{
-			if (auto pGISubsystem = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>())
+			GISubsystem = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>();
+			if (GISubsystem != nullptr)
 			{
-				ActiveSession = pGISubsystem->GetSessionSubsystem()->GetActiveSession();
-				PlayerInfoSubsystem = pGISubsystem->GetPlayerInfoSubsystem();
+				ActiveSession = GISubsystem->GetSessionSubsystem()->GetActiveSession();
+				PlayerInfoSubsystem = GISubsystem->GetPlayerInfoSubsystem();
 			}
 		}
 	}
 
 	if (PlayerInfoSubsystem != nullptr)
 	{
+		// create a correlation provider (TODO - have a provider at the game instance level)
+		TSharedPtr<IAnalyticsProvider> AnalyticsProvider = RHStandardEvents::AutoCreateAnalyticsProvider();
+		if (AnalyticsProvider.IsValid())
+		{
+			// record to the analytics provider
+			AnalyticsProvider->StartSession();
+
+			// emit a correlation id for the following events so they can be crossreferenced
+			RHStandardEvents::FCorrelationStartEvent::AutoEmit(AnalyticsProvider.Get(), GameInstance);
+		}
+
 		for (const auto& TrackerPair : m_StatsTrackers)
 		{
 			const TSharedPtr<FRHStatsTracker>& Tracker = TrackerPair.Value;
@@ -191,67 +208,100 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 				Tracker->SetPlayerXpEarned(50); // using an example xp/second of 50
 				Tracker->SetBattlepassXpEarned(50); // using an example xp/second of 50
 
-				TArray<URH_PlayerOrderEntry*> PlayerOrderEntries;
-
-				URH_PlayerOrderEntry* NewPlayerOrderEntry = NewObject<URH_PlayerOrderEntry>();
-				NewPlayerOrderEntry->FillType = ERHAPI_PlayerOrderEntryType::FillLoot;
-				NewPlayerOrderEntry->LootId = GetPlayerXpLootId();
-				NewPlayerOrderEntry->Quantity = Tracker->GetEarnedPlayerXp();
-				NewPlayerOrderEntry->ExternalTransactionId = "End Of Match Xp Rewards";
-				PlayerOrderEntries.Push(NewPlayerOrderEntry);
-				UE_LOG(RallyHereStart, Log, TEXT("URHStatsMgr::FinishStats -- Added Loot Reward -- PlayerId=%s, LootId=%s, Count=%d"), *Tracker->GetPlayerUuid().ToString(), *GetPlayerXpLootId().ToString(), Tracker->GetEarnedPlayerXp());
-
-				NewPlayerOrderEntry = NewObject<URH_PlayerOrderEntry>();
-				NewPlayerOrderEntry->FillType = ERHAPI_PlayerOrderEntryType::FillLoot;
-				NewPlayerOrderEntry->LootId = GetBattlepassXpLootId();
-				NewPlayerOrderEntry->Quantity = Tracker->GetEarnedBattlepassXp();
-				NewPlayerOrderEntry->ExternalTransactionId = "End Of Match Battlepass Xp Rewards";
-				PlayerOrderEntries.Push(NewPlayerOrderEntry);
-				UE_LOG(RallyHereStart, Log, TEXT("URHStatsMgr::FinishStats -- Added Loot Reward -- PlayerId=%s, LootId=%s, Count=%d"), *Tracker->GetPlayerUuid().ToString(), *GetBattlepassXpLootId().ToString(), Tracker->GetEarnedBattlepassXp());
-
 				if (URH_PlayerInfo* PlayerInfo = PlayerInfoSubsystem->GetOrCreatePlayerInfo(Tracker->GetPlayerUuid()))
 				{
+					TArray<URH_PlayerOrderEntry*> PlayerOrderEntries;
+
+					URH_PlayerOrderEntry* NewPlayerOrderEntry = NewObject<URH_PlayerOrderEntry>();
+					NewPlayerOrderEntry->FillType = ERHAPI_PlayerOrderEntryType::FillLoot;
+					NewPlayerOrderEntry->LootId = GetPlayerXpLootId();
+					NewPlayerOrderEntry->Quantity = Tracker->GetEarnedPlayerXp();
+					NewPlayerOrderEntry->ExternalTransactionId = "End Of Match Xp Rewards";
+					PlayerOrderEntries.Push(NewPlayerOrderEntry);
+					UE_LOG(RallyHereStart, Log, TEXT("URHStatsMgr::FinishStats -- Added Loot Reward -- PlayerId=%s, LootId=%s, Count=%d"), *Tracker->GetPlayerUuid().ToString(), *GetPlayerXpLootId().ToString(), Tracker->GetEarnedPlayerXp());
+
+					NewPlayerOrderEntry = NewObject<URH_PlayerOrderEntry>();
+					NewPlayerOrderEntry->FillType = ERHAPI_PlayerOrderEntryType::FillLoot;
+					NewPlayerOrderEntry->LootId = GetBattlepassXpLootId();
+					NewPlayerOrderEntry->Quantity = Tracker->GetEarnedBattlepassXp();
+					NewPlayerOrderEntry->ExternalTransactionId = "End Of Match Battlepass Xp Rewards";
+					PlayerOrderEntries.Push(NewPlayerOrderEntry);
+					UE_LOG(RallyHereStart, Log, TEXT("URHStatsMgr::FinishStats -- Added Loot Reward -- PlayerId=%s, LootId=%s, Count=%d"), *Tracker->GetPlayerUuid().ToString(), *GetBattlepassXpLootId().ToString(), Tracker->GetEarnedBattlepassXp());
+
+
 					PlayerInfo->GetPlayerInventory()->CreateNewPlayerOrder(ERHAPI_Source::Instance, false, PlayerOrderEntries);
-					FString DisplayName;
-					PlayerInfo->GetLastKnownDisplayName(DisplayName);
-					
-					TArray<FAnalyticsEventAttribute> Attributes;
+				}
 
-					Attributes.Add(FAnalyticsEventAttribute(TEXT("xpEarned"), Tracker->GetEarnedPlayerXp()));
-					Attributes.Add(FAnalyticsEventAttribute(TEXT("duration"), Tracker->GetTimespan().GetTotalSeconds()));
-					Attributes.Add(FAnalyticsEventAttribute(TEXT("matchStartTime"), Tracker->GetStartTime().ToIso8601()));
-					Attributes.Add(FAnalyticsEventAttribute(TEXT("matchEndTime"), FDateTime::UtcNow().ToIso8601()));
-					Attributes.Add(FAnalyticsEventAttribute(TEXT("hostName"), TEXT("RallyTestServer")));
-
-					if (ActiveSession != nullptr)
+				if (AnalyticsProvider.IsValid())
+				{
+					// emit standard match result
 					{
-						Attributes.Add(FAnalyticsEventAttribute(TEXT("totalPlayers"), ActiveSession->GetSessionPlayerCount()));
-						Attributes.Add(FAnalyticsEventAttribute(TEXT("serverSessionId"), ActiveSession->GetSessionId()));
+						RHStandardEvents::FPlayerGameResultEvent Event;
 
-						if (const FRHAPI_InstanceInfo* InstanceData = ActiveSession->GetInstanceData())
+						if (ActiveSession != nullptr)
 						{
-							Attributes.Add(FAnalyticsEventAttribute(TEXT("instanceId"), InstanceData->GetInstanceId()));
+							Event.GameSessionId = ActiveSession->GetSessionId();
+
+							if (const FRHAPI_InstanceInfo* InstanceData = ActiveSession->GetInstanceData())
+							{
+								Event.InstanceId = InstanceData->GetInstanceId();
+							}
 						}
 
-						FString RegionId;
-						if (ActiveSession->GetSessionData().GetRegionId(RegionId))
-						{
-							Attributes.Add(FAnalyticsEventAttribute(TEXT("regionId"), RegionId));
-						}
+						Event.DurationSeconds = Tracker->GetTimespan().GetTotalSeconds();
+
+						Event.EmitTo(AnalyticsProvider.Get());
 					}
 
-					// temp - make an analytics provider per player
-					auto AnalyticsProvider = FAnalytics::Get().GetDefaultConfiguredProvider();
-
-					if (AnalyticsProvider.IsValid())
+					// emit custom old style match result
 					{
+						RHStandardEvents::FCustomEvent Event;
+
+						Event.EventName = TEXT("match_result");
+
+						Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("xpEarned"), Tracker->GetEarnedPlayerXp()));
+						Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("duration"), Tracker->GetTimespan().GetTotalSeconds()));
+						Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("matchStartTime"), Tracker->GetStartTime().ToIso8601()));
+						Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("matchEndTime"), FDateTime::UtcNow().ToIso8601()));
+						Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("hostName"), TEXT("RallyTestServer")));
+
+						if (ActiveSession != nullptr)
+						{
+							Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("totalPlayers"), ActiveSession->GetSessionPlayerCount()));
+							Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("serverSessionId"), ActiveSession->GetSessionId()));
+
+							if (const FRHAPI_InstanceInfo* InstanceData = ActiveSession->GetInstanceData())
+							{
+								Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("instanceId"), InstanceData->GetInstanceId()));
+							}
+
+							FString RegionId;
+							if (ActiveSession->GetSessionData().GetRegionId(RegionId))
+							{
+								Event.Attributes.Add(FAnalyticsEventAttribute(TEXT("regionId"), RegionId));
+							}
+						}
+
 						auto PlayerUuid = Tracker->GetPlayerUuid();
 						AnalyticsProvider->SetUserID(PlayerUuid.IsValid() ? PlayerUuid.ToString(EGuidFormats::DigitsWithHyphens) : TEXT(""));
-						AnalyticsProvider->StartSession();
-						AnalyticsProvider->RecordEvent(TEXT("matchResult"), Attributes);
-						AnalyticsProvider->EndSession();
+						Event.EmitTo(AnalyticsProvider.Get());
 					}
 				}
+			}
+
+			if (AnalyticsProvider.IsValid())
+			{
+				// clear out the user id, so we dont emit events on behalf of a user
+				AnalyticsProvider->SetUserID(TEXT(""));
+
+				// emit a correlation end event
+				{
+					RHStandardEvents::FCorrelationEndEvent Event;
+					Event.EmitTo(AnalyticsProvider.Get());
+				}
+				
+				// close out the analytics session
+				AnalyticsProvider->EndSession();
 			}
 		}
 	}
