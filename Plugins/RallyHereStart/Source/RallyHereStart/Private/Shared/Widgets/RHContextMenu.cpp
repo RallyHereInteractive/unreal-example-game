@@ -198,9 +198,7 @@ bool URHContextMenu::ExecuteSelectedOption(EPlayerContextOptions ContextOption)
 				bWasSuccessful = AttemptPartyAction(EPartyManagerAction::KickMember);
 				break;
 			case EPlayerContextOptions::ViewPlatformProfile:
-				// #RHTODO - Platform Support -  Call off to external profile based on platform id
-				//CurrentFriend->ViewExternalProfile();
-				bWasSuccessful = true;
+				bWasSuccessful = CurrentFriend != nullptr && CurrentFriend->ViewPlatformProfile();
 				break;
 			case EPlayerContextOptions::RemoveFriend:
 				bWasSuccessful = AttemptFriendAction(EFriendAction::RemoveFriend);
@@ -259,7 +257,7 @@ bool URHContextMenu::ExecuteSelectedOption(EPlayerContextOptions ContextOption)
 	}
 	else
 	{
-		UE_LOG(RallyHereStart, Warning, TEXT("[%s] Warning: CurrentPlayerInfo is not currently valid."), ANSI_TO_TCHAR(__FUNCTION__));
+		UE_LOG(RallyHereStart, Warning, TEXT("[%s] Warning: CurrentFriend is not currently valid."), ANSI_TO_TCHAR(__FUNCTION__));
 	}
 
 	return bWasSuccessful;
@@ -727,8 +725,7 @@ void URHContextMenu::SetContextButtonVisibility(class URHContextMenuButton* Cont
 					bIsVisible = HasPlayerInvited() && MenuContext != EPlayerContextMenuContext::InGame;
 					break;
 				case EPlayerContextOptions::ViewPlatformProfile:
-					// #RHTODO - Platform Support - Check that this was - bIsVisible = CurrentPlayerInfo->ShouldShowViewGamercardForPlayer();
-					bIsVisible = false;
+					bIsVisible = CurrentFriend->CanViewPlatformProfile();
 					break;
 				case EPlayerContextOptions::Mute:
 					bIsVisible = (((MenuContext == EPlayerContextMenuContext::CustomLobby || MenuContext == EPlayerContextMenuContext::InGame) && IsInVoiceChannel()) || bCanMuteInParty) &&
