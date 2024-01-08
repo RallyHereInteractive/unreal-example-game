@@ -81,7 +81,7 @@ bool URHUIBlueprintFunctionLibrary::IsPlatformType(bool IsConsole, bool IsPC, bo
 	{
 		return IsMobile;
 	}
-	else if (PlatformName == TEXT("Windows") || PlatformName == TEXT("Mac") || PlatformName == TEXT("Linux"))
+	else if (PLATFORM_DESKTOP)
 	{
 		return IsPC;
 	}

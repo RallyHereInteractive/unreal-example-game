@@ -432,10 +432,10 @@ void URHJsonDataFactory::CheckShouldShowForPlayer(URHJsonData* JsonData, URH_Pla
 		}
 
 		const FString PlatformName = UGameplayStatics::GetPlatformName();
-		const bool isPc = PlatformName == TEXT("Windows") || PlatformName == TEXT("Mac") || PlatformName == TEXT("Linux");
+		const bool isPc = PLATFORM_DESKTOP;
 		const bool isPS4 = PlatformName == TEXT("PS4");
 		const bool isPS5 = PlatformName == TEXT("PS5");
-		const bool isXB1 = PlatformName == TEXT("XboxOne");
+		const bool isXB1 = PlatformName == TEXT("XboxOne") || TEXT("XB1");
 		const bool isXSX = PlatformName == TEXT("XSX");
 		const bool isSwitch = PlatformName == TEXT("Switch");
 		const bool isIOS = PlatformName == TEXT("IOS");

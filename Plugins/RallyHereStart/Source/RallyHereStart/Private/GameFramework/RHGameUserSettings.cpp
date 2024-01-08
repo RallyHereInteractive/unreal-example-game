@@ -1152,7 +1152,7 @@ EGamepadIcons URHGameUserSettings::GetGamepadIconSet() const
 {
 	const FString PlatformName = UGameplayStatics::GetPlatformName();
 
-	if (PlatformName == TEXT("Windows") || PlatformName == TEXT("Mac") || PlatformName == TEXT("Linux"))
+	if (PLATFORM_DESKTOP)
 	{
 		return GamepadIconSet;
 	}
