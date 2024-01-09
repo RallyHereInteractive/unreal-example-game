@@ -113,12 +113,14 @@ public:
 	bool IsPlatformAllowed(const FString& PlatformName) const
 	{
 		if (PlatformName == TEXT("XboxOne")) return XBoxOne;
+		if (PlatformName == TEXT("XB1")) return XBoxOne;
 		if (PlatformName == TEXT("XSX")) return XSX;
 		if (PlatformName == TEXT("PS4")) return PS4;
 		if (PlatformName == TEXT("PS5")) return PS5;
 		if (PlatformName == TEXT("Linux")) return Linux;
 		if (PlatformName == TEXT("Mac")) return Mac;
 		if (PlatformName == TEXT("Windows")) return Windows;
+		if (PlatformName == TEXT("WinGDK")) return Windows;
 		if (PlatformName == TEXT("Switch")) return Switch;
 		if (PlatformName == TEXT("IOS")) return IOS;
 		if (PlatformName == TEXT("Android")) return Android;

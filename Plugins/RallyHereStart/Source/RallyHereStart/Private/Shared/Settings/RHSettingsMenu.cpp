@@ -68,7 +68,7 @@ void URHSettingsMenu::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 				SettingsState.bIsMouseAttached = false;
 				SettingsState.bIsTouchMode = false;
 			}
-			else if (PlatformName == TEXT("Windows") || PlatformName == TEXT("Mac") || PlatformName == TEXT("Linux"))
+			else if (PLATFORM_DESKTOP)
 			{
 				SettingsState.bIsGamepadAttached = GenericApplication->IsGamepadAttached();
 				SettingsState.bIsMouseAttached = true;

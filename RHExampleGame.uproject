@@ -73,6 +73,7 @@
 		"Desktop",
 		"LinuxNoEditor",
 		"WindowsNoEditor",
+		"WinGDK",
 		"XboxOne",
 		"PS4"
 	]
