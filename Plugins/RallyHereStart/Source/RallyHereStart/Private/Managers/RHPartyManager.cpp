@@ -162,7 +162,12 @@ void URHPartyManager::UpdateParty(URH_JoinedSession* pSession)
 
 		// disable player watching, as we no longer care about the party members
 		OldParty->SetWatchingPlayers(false);
-		OldParty->Leave(false);
+
+		// leave the party if still in our owner object (this call can be due to it being removed, so do not leave twice)
+		if (OldParty->GetSessionOwner() != nullptr && OldParty->GetSessionOwner()->GetSessionById(OldParty->GetSessionId()) != nullptr)
+		{
+			OldParty->Leave(false);
+		}
 
 		OnPartyDataUpdated.Broadcast();
 
