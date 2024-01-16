@@ -177,11 +177,11 @@ void URHPartyManager::UpdatePartyFromSubsystem()
 	UpdateParty(pSession);
 }
 
-void URHPartyManager::HandleSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession, const FRH_ErrorInfo& ErrorInfo)
+void URHPartyManager::HandleSessionCreated(bool bSuccess, URH_SessionView* JoinedSession, const FRH_ErrorInfo& ErrorInfo)
 {
 	if (bSuccess)
 	{
-		UpdateParty(JoinedSession);
+		UpdateParty(Cast<URH_JoinedSession>(JoinedSession));
 	}
 }
 
@@ -1102,7 +1102,7 @@ void URHPartyManager::ForcePartyCleanUp(bool ForceLeave /*= false*/)
 	}
 }
 
-void URHPartyManager::HandleSessionUpdate(bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
+void URHPartyManager::HandleSessionUpdate(bool bSuccess, URH_SessionView* pSession, const FRH_ErrorInfo& ErrorInfo)
 {
 	FText SessionUpdateMessage = FText::GetEmpty();
 	if (!bSuccess)
@@ -1229,7 +1229,7 @@ void URHPartyManager::HandlePreferredRegionUpdated()
 	}
 }
 
-void URHPartyManager::HandleUpdateSessionRegionIdResponse(bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
+void URHPartyManager::HandleUpdateSessionRegionIdResponse(bool bSuccess, URH_SessionView* pSession, const FRH_ErrorInfo& ErrorInfo)
 {
 	if (!bSuccess)
 	{

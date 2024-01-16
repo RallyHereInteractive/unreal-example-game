@@ -221,7 +221,7 @@ bool URHQueueDataFactory::CanQueue() const
 
 bool URHQueueDataFactory::JoinQueue(FString QueueId)
 {
-	auto HandleJoinQueueDelegate = FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this, QueueId] (bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
+	auto HandleJoinQueueDelegate = FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this, QueueId] (bool bSuccess, URH_SessionView* pSession, const FRH_ErrorInfo& ErrorInfo)
 		{
 			if (bSuccess)
 			{
@@ -267,7 +267,7 @@ bool URHQueueDataFactory::JoinQueue(FString QueueId)
 
 bool URHQueueDataFactory::LeaveQueue()
 {
-	auto HandleLeaveQueueDelegate = FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this] (bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
+	auto HandleLeaveQueueDelegate = FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this] (bool bSuccess, URH_SessionView* pSession, const FRH_ErrorInfo& ErrorInfo)
 		{
 			if (bSuccess)
 			{
@@ -524,11 +524,11 @@ void URHQueueDataFactory::CreateCustomMatchSession()
 	}
 }
 
-void URHQueueDataFactory::HandleCustomMatchSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession, const FRH_ErrorInfo& ErrorInfo)
+void URHQueueDataFactory::HandleCustomMatchSessionCreated(bool bSuccess, URH_SessionView* JoinedSession, const FRH_ErrorInfo& ErrorInfo)
 {
-	if (bSuccess)
+	if (bSuccess && JoinedSession != nullptr && JoinedSession->IsA(URH_JoinedSession::StaticClass()))
 	{
-		CustomMatchSession = JoinedSession;
+		CustomMatchSession = Cast<URH_JoinedSession>(JoinedSession);
 
 		// mark the custom session as publicly joinable
 		{
@@ -892,16 +892,17 @@ void URHQueueDataFactory::StartCustomMatch(bool bDedicatedInstance /*= false*/)
 		ERHAPI_HostType HostType = bDedicatedInstance ? ERHAPI_HostType::Dedicated : ERHAPI_HostType::Player;
 		InstanceRequest.SetHostType(HostType);
 
-		CustomMatchSession->RequestInstance(InstanceRequest, FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this](bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
+		CustomMatchSession->RequestInstance(InstanceRequest, FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this](bool bSuccess, URH_SessionView* pSession, const FRH_ErrorInfo& ErrorInfo)
 			{
-				if (bSuccess)
+				auto pJoinedSession = Cast<URH_JoinedSession>(pSession);
+				if (bSuccess && pJoinedSession != nullptr)
 				{
 					if (auto* GISessionSubsystem = GetGameInstanceSessionSubsystem())
 					{
-						if (GISessionSubsystem->IsReadyToJoinInstance(pSession, true))
+						if (GISessionSubsystem->IsReadyToJoinInstance(pJoinedSession, true))
 						{
 							UE_LOG(RallyHereStart, Warning, TEXT("URHQueueDataFactory::StartCustomMatch - Ready to join instance immediately, starting join"));
-							GISessionSubsystem->SyncToSession(pSession);
+							GISessionSubsystem->SyncToSession(pJoinedSession);
 						}
 						return;
 					}
@@ -951,7 +952,7 @@ void URHQueueDataFactory::SetPlayerTeamCustomMatch(const FGuid& PlayerId, int32 
 {
 	if (CustomMatchSession)
 	{
-		CustomMatchSession->ChangePlayerTeam(PlayerId, TeamId, FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this](bool bSuccess, URH_JoinedSession* pSession, const FRH_ErrorInfo& ErrorInfo)
+		CustomMatchSession->ChangePlayerTeam(PlayerId, TeamId, FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this](bool bSuccess, URH_SessionView* pSession, const FRH_ErrorInfo& ErrorInfo)
 			{
 				if (bSuccess)
 				{
