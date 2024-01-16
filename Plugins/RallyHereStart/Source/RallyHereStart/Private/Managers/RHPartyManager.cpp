@@ -29,6 +29,7 @@ void URHPartyManager::Initialize(class ARHHUDCommon* InHud)
 		RHSS->OnSessionAddedDelegate.AddUObject(this, &URHPartyManager::HandleSessionAdded);
 		RHSS->OnSessionRemovedDelegate.AddUObject(this, &URHPartyManager::HandleSessionRemoved);
 		RHSS->OnLoginPollSessionsCompleteDelegate.AddUObject(this, &URHPartyManager::HandleLoginPollSessionsComplete);
+		RHSS->OnFailedToJoinPlatformSessionDelegate.AddUObject(this, &URHPartyManager::HandleFailedToJoinPlatformSession);
 	}
 	if (auto RHFS = GetFriendSubsystem())
 	{
@@ -111,6 +112,52 @@ void URHPartyManager::HandleLoginPollSessionsComplete(bool bSuccess)
 	}
 
 	LastLoginPlayerGuid = MyHud != nullptr ? MyHud->GetLocalPlayerUuid() : FGuid();
+}
+
+void URHPartyManager::HandleFailedToJoinPlatformSession(const FRH_ErrorInfo& ErrorInfo)
+{
+	const TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ErrorInfo.ResponseContent);
+	TSharedPtr<FJsonObject> JsonObject;
+	if (FJsonSerializer::Deserialize(JsonReader, JsonObject))
+	{
+		FText InvitationErrorMessage = NSLOCTEXT("GeneralParty", "PortalPartyError", "An error occurred when attempting to join the party.");
+
+		const FString ErrorCodeProperty = TEXT("error_code");
+		const FString TeamFullErrorCode = TEXT("team_full");
+		for (auto ValuesIt = JsonObject->Values.CreateIterator(); ValuesIt; ++ValuesIt)
+		{
+			if (ValuesIt->Key.Equals(ErrorCodeProperty, ESearchCase::IgnoreCase))
+			{
+				FString ErrorCode;
+				if (ValuesIt->Value->TryGetString(ErrorCode))
+				{
+					if (ErrorCode.Equals(TeamFullErrorCode, ESearchCase::IgnoreCase))
+					{
+						InvitationErrorMessage = NSLOCTEXT("GeneralParty", "PortalPartyFull", "The party you are trying to join is currently full.");
+					}
+				}
+			}
+		}
+
+		if (MyHud != nullptr)
+		{
+			if (auto* PopupManager = MyHud->GetPopupManager())
+			{
+				FRHPopupConfig PopupParams;
+				PopupParams.Header = NSLOCTEXT("GeneralParty", "PortalSessionUpdate", "Party Session");
+				PopupParams.Description = InvitationErrorMessage;
+				PopupParams.IsImportant = true;
+				PopupParams.CancelAction.AddDynamic(PopupManager, &URHPopupManager::OnPopupCanceled);
+
+				auto& ConfirmBtn = (PopupParams.Buttons[PopupParams.Buttons.AddDefaulted()]);
+				ConfirmBtn.Label = NSLOCTEXT("General", "Confirm", "Confirm");
+				ConfirmBtn.Type = ERHPopupButtonType::Confirm;
+				ConfirmBtn.Action.AddDynamic(PopupManager, &URHPopupManager::OnPopupCanceled);
+
+				PopupManager->AddPopup(PopupParams);
+			}
+		}
+	}
 }
 
 void URHPartyManager::UpdatePartyFromSubsystem()
