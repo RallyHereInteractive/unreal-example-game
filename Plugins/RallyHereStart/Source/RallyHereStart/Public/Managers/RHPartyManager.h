@@ -295,6 +295,7 @@ protected:
 	virtual void						HandleSessionRemoved(URH_SessionView* pSession);
 	virtual void						HandleSessionCreated(bool bSuccess, URH_JoinedSession* JoinedSession, const FRH_ErrorInfo& ErrorInfo);
 	virtual void						HandleLoginPollSessionsComplete(bool bSuccess);
+	virtual void						HandleFailedToJoinPlatformSession(const FRH_ErrorInfo& ErrorInfo);
 	virtual void						HandlePartyMemberStateChanged(URH_SessionView* UpdatedSession, const FRH_SessionMemberStatusState& OldStatus, const FRH_SessionMemberStatusState& NewStatus);
 
 	UPROPERTY(BlueprintReadOnly, Category = "RH Party Manager")
