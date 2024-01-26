@@ -95,7 +95,9 @@ protected:
     FString TelemetryId;
 
     // File to log to
-    class FOutputDeviceFile* LogFile;
+    class FArchive* StatsFileCSV;
+
+	bool bHasWrittenCSVHeader;
 
     // Delegate that fires on the per second stats being collected
     FOnTelemetrySampledNative OnTelemetrySampledNativeDel;
@@ -126,7 +128,7 @@ protected:
     virtual void CollectPerFrameStats(float DeltaSeconds);
     virtual void CollectPerSecondStats();
 
-    virtual FString GetDetailedStatsToLog(double Time);
+    virtual FString GetDetailedStatsToLog(const FDateTime& Time, bool bWriteHeader);
 
 private:
     

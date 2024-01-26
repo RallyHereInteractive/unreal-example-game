@@ -8,17 +8,17 @@
 #include "Net/PerfCountersHelpers.h"
 
 FPCom_RuntimeTelemetryCollector::FPCom_RuntimeTelemetryCollector()
-    : LogFile{ nullptr }
+    : StatsFileCSV(nullptr)
+	, bHasWrittenCSVHeader(false)
 {
 }
 
 FPCom_RuntimeTelemetryCollector::~FPCom_RuntimeTelemetryCollector()
 {
-    if (LogFile != nullptr)
+    if (StatsFileCSV != nullptr)
     {
-        LogFile->Flush();
-        LogFile->TearDown();
-        delete LogFile;
+        delete StatsFileCSV;
+		StatsFileCSV = nullptr;
     }
 }
 
@@ -35,10 +35,11 @@ bool FPCom_RuntimeTelemetryCollector::Init(URHGameEngine* pEngine, UWorld* pWorl
     // create log file
     if (LogFeatures.bWriteToFile)
     {
-        FString FileName = FPaths::ProjectLogDir() / FString::Printf(TEXT("LogStats_%s.log"), *TelemetryId);
-        LogFile = new FOutputDeviceFile(*FileName);
-        check(LogFile);
-        LogFile->SetAutoEmitLineTerminator(true);
+		// Create the file name		
+		FString FileName = FPaths::ProjectLogDir() / FString::Printf(TEXT("Stats_%s.csv"), *TelemetryId);
+
+		// save file
+		StatsFileCSV = IFileManager::Get().CreateFileWriter(*FileName);
     }
 
 #if USE_SERVER_PERF_COUNTERS
@@ -138,7 +139,7 @@ void FPCom_RuntimeTelemetryCollector::Tick(float DeltaSeconds)
         CollectPerSecondStats();
     }
 
-    const bool bWriteFile = LogFeatures.bWriteToFile && LogFeatures.FileWriteFrequency > 0 && LogFile != nullptr && (CurrentSecondCounter - LastFileWrite) >= LogFeatures.FileWriteFrequency;
+    const bool bWriteFile = LogFeatures.bWriteToFile && LogFeatures.FileWriteFrequency > 0 && StatsFileCSV != nullptr && (CurrentSecondCounter - LastFileWrite) >= LogFeatures.FileWriteFrequency;
 
     if (bWriteFile)
     {
@@ -250,60 +251,92 @@ void FPCom_RuntimeTelemetryCollector::CollectPerSecondStats()
 
 void FPCom_RuntimeTelemetryCollector::WriteFileStats()
 {
-    if (LogFile != nullptr)
-    {
-        double Time = FPlatformTime::Seconds();
+	if (StatsFileCSV != nullptr)
+	{
+		auto Time = FDateTime::UtcNow();
 
-        // these cluster markers are to allow the internal tool to work better.  Eliminate if/when we are fully on datadog, or fix the tool
-        const FString ClusterStart = FString::Printf(TEXT("StartCluster %d %s"), CurrentSecondCounter, FPlatformTime::StrTimestamp());
-        LogFile->Serialize(*ClusterStart, ELogVerbosity::Warning, LogFeatures.LogCategory, Time);
+		// virtual call to allow subclasses to write their own stats to the line.  But we want to emit just a single line.
+		bool bWriteHeader = !bHasWrittenCSVHeader;
+		if (bWriteHeader)
+		{
+			GetDetailedStatsToLog(Time, true);
+			bHasWrittenCSVHeader = true;
+		}
+        FString logLine = GetDetailedStatsToLog(Time, false);
 
-        // virtual call to allow subclasses to write their own stats to the line.  But we want to emit just a single line.
-        FString logLine = GetDetailedStatsToLog(Time);
-        LogFile->Serialize(*logLine, ELogVerbosity::Warning, LogFeatures.LogCategory, Time);
-
-        const FString ClusterEnd = FString::Printf(TEXT("ClusterEnd %d"), CurrentSecondCounter);
-        LogFile->Serialize(*ClusterEnd, ELogVerbosity::Warning, LogFeatures.LogCategory, Time);
+		// write the line to the file (assume ANSICHAR compatible)
+		StatsFileCSV->Serialize((ANSICHAR*)*logLine, logLine.Len() * sizeof(ANSICHAR));
     }
 }
 
-FString FPCom_RuntimeTelemetryCollector::GetDetailedStatsToLog(double Time)
+FString FPCom_RuntimeTelemetryCollector::GetDetailedStatsToLog(const FDateTime& Time, bool bHeader)
 {
-    const FString PrimaryStatsString = FString::Printf(TEXT("TickCount=%d, MaxFrameTime=%0.2f, MaxDeltaTime=%0.2f, CPUProcess=%0.2f, Memory_WS=%0.f"),
-        PrimaryStats.PerFrameStats.TickCount,
-        PrimaryStats.PerFrameStats.MaxFrameTime,
-        PrimaryStats.PerFrameStats.MaxDeltaTime,
-        PrimaryStats.PerSecondStats.CPUProcess,
-        PrimaryStats.PerSecondStats.MemoryWS
-    );
+	FString Output;
 
-    const FString NetStatsString = FString::Printf(TEXT("Connections=%d, AveragePing=%0.f, PacketsIn=%d, PacketsOut=%d, PacketsTotal=%d, PacketsLostIn=%d, PacketsLostOut=%d, PacketsLostTotal=%d, PacketLossPct=%0.2f"),
-        NetworkStats.PerSecondStats.ConnectionCount,
-        NetworkStats.PerSecondStats.Ping,
+	// sample info
+	if (bHeader)
+	{
+		Output += TEXT("Timestamp, FrameNumber");
+	}
+	else
+	{
+		Output += FString::Printf(TEXT("%s, %0.2f"), *Time.ToIso8601(), GFrameNumber);
+	}
 
-        NetworkStats.PerSecondStats.PacketsIn,
-        NetworkStats.PerSecondStats.PacketsOut,
-        NetworkStats.PerSecondStats.PacketsTotal,
+	// performance stats
+	if (bHeader)
+	{
+		Output += TEXT("TickCount, MaxFrameTime, MaxDeltaTime, CPUProcess, Memory_WS");
+	}
+	else
+	{
+		Output += FString::Printf(TEXT("%d, %0.2f, %0.2f, %0.2f,%0.f"),
+			PrimaryStats.PerFrameStats.TickCount,
+			PrimaryStats.PerFrameStats.MaxFrameTime,
+			PrimaryStats.PerFrameStats.MaxDeltaTime,
+			PrimaryStats.PerSecondStats.CPUProcess,
+			PrimaryStats.PerSecondStats.MemoryWS
+		);
+	}
 
-        NetworkStats.PerSecondStats.PacketsLostIn,
-        NetworkStats.PerSecondStats.PacketsLostOut,
-        NetworkStats.PerSecondStats.PacketsLostTotal,
-        NetworkStats.PerSecondStats.PacketLoss * 100.f
-    );
+	// network stats
+	if (bHeader)
+	{
+		Output += TEXT("Connections, AveragePing, PacketsIn, PacketsOut, PacketsTotal, PacketsLostIn, PacketsLostOut, PacketsLostTotal, PacketLossPct");
+	}
+	else
+	{
+		Output += FString::Printf(TEXT("%d, %0.f, %d, %d, %d, %d, %d, %d, %0.2f"),
+			NetworkStats.PerSecondStats.ConnectionCount,
+			NetworkStats.PerSecondStats.Ping,
 
-    const FString WorldStatsString = FString::Printf(TEXT("Players=%d, Pawns=%d, Bots=%d"),
-        PrimaryStats.PerSecondStats.PlayerControllerCount,
-        PrimaryStats.PerSecondStats.PawnCount,
-        PrimaryStats.PerSecondStats.AIControllerCount
-    );
+			NetworkStats.PerSecondStats.PacketsIn,
+			NetworkStats.PerSecondStats.PacketsOut,
+			NetworkStats.PerSecondStats.PacketsTotal,
 
-    FString Result = PrimaryStatsString;
-    Result += FString(TEXT(", ")) + WorldStatsString;
+			NetworkStats.PerSecondStats.PacketsLostIn,
+			NetworkStats.PerSecondStats.PacketsLostOut,
+			NetworkStats.PerSecondStats.PacketsLostTotal,
+			NetworkStats.PerSecondStats.PacketLoss * 100.f
+		);
+	}
+    
+	// gameplay stats
+	if (bHeader)
+	{
+		Output += TEXT("PlayerControllers, AIControllers, Pawns");
+	}
+	else
+	{
+		Output += FString::Printf(TEXT("%d, %d, =%d"),
+			PrimaryStats.PerSecondStats.PlayerControllerCount,
+			PrimaryStats.PerSecondStats.AIControllerCount,
+			PrimaryStats.PerSecondStats.PawnCount
+		);
+	}
 
-    if(LogFeatures.LogVerbosity >= ELogVerbosity::Log)
-    {
-        Result += FString(TEXT(", ")) + NetStatsString;
-    }
+	// end of line
+	Output += LINE_TERMINATOR;
 
-    return Result;
+    return Output;
 }
