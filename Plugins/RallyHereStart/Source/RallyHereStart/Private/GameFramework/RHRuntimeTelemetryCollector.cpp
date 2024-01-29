@@ -39,7 +39,7 @@ bool FPCom_RuntimeTelemetryCollector::Init(URHGameEngine* pEngine, UWorld* pWorl
 		FString FileName = FPaths::ProjectLogDir() / FString::Printf(TEXT("Stats_%s.csv"), *TelemetryId);
 
 		// save file
-		StatsFileCSV = IFileManager::Get().CreateFileWriter(*FileName);
+		StatsFileCSV = IFileManager::Get().CreateFileWriter(*FileName, FILEWRITE_AllowRead);
     }
 
 #if USE_SERVER_PERF_COUNTERS
@@ -255,42 +255,50 @@ void FPCom_RuntimeTelemetryCollector::WriteFileStats()
 	{
 		auto Time = FDateTime::UtcNow();
 
-		// virtual call to allow subclasses to write their own stats to the line.  But we want to emit just a single line.
-		bool bWriteHeader = !bHasWrittenCSVHeader;
-		if (bWriteHeader)
+		// write the header if needed
+		if (!bHasWrittenCSVHeader)
 		{
-			GetDetailedStatsToLog(Time, true);
 			bHasWrittenCSVHeader = true;
-		}
-        FString logLine = GetDetailedStatsToLog(Time, false);
+			FString logLine = LogStatsToString(Time, true);
 
-		// write the line to the file (assume ANSICHAR compatible)
-		StatsFileCSV->Serialize((ANSICHAR*)*logLine, logLine.Len() * sizeof(ANSICHAR));
+			// write the line to the file
+			auto Src = StringCast<ANSICHAR>(*logLine, logLine.Len());
+			StatsFileCSV->Serialize((ANSICHAR*)Src.Get(), Src.Length() * sizeof(ANSICHAR));
+		}
+
+		// write the stats
+		{
+			FString logLine = LogStatsToString(Time, false);
+
+			// write the line to the file
+			auto Src = StringCast<ANSICHAR>(*logLine, logLine.Len());
+			StatsFileCSV->Serialize((ANSICHAR*)Src.Get(), Src.Length() * sizeof(ANSICHAR));
+		}
     }
 }
 
-FString FPCom_RuntimeTelemetryCollector::GetDetailedStatsToLog(const FDateTime& Time, bool bHeader)
+FString FPCom_RuntimeTelemetryCollector::LogStatsToString(const FDateTime& Time, bool bHeader)
 {
 	FString Output;
 
 	// sample info
 	if (bHeader)
 	{
-		Output += TEXT("Timestamp, FrameNumber");
+		Output += TEXT("Timestamp, FrameNumber, ");
 	}
 	else
 	{
-		Output += FString::Printf(TEXT("%s, %0.2f"), *Time.ToIso8601(), GFrameNumber);
+		Output += FString::Printf(TEXT("%s, %d, "), *Time.ToIso8601(), GFrameNumber);
 	}
 
 	// performance stats
 	if (bHeader)
 	{
-		Output += TEXT("TickCount, MaxFrameTime, MaxDeltaTime, CPUProcess, Memory_WS");
+		Output += TEXT("TickCount, MaxFrameTime, MaxDeltaTime, CPUProcess, Memory_WS, ");
 	}
 	else
 	{
-		Output += FString::Printf(TEXT("%d, %0.2f, %0.2f, %0.2f,%0.f"),
+		Output += FString::Printf(TEXT("%d, %0.2f, %0.2f, %0.2f,%0.f, "),
 			PrimaryStats.PerFrameStats.TickCount,
 			PrimaryStats.PerFrameStats.MaxFrameTime,
 			PrimaryStats.PerFrameStats.MaxDeltaTime,
@@ -302,11 +310,11 @@ FString FPCom_RuntimeTelemetryCollector::GetDetailedStatsToLog(const FDateTime& 
 	// network stats
 	if (bHeader)
 	{
-		Output += TEXT("Connections, AveragePing, PacketsIn, PacketsOut, PacketsTotal, PacketsLostIn, PacketsLostOut, PacketsLostTotal, PacketLossPct");
+		Output += TEXT("Connections, AveragePing, PacketsIn, PacketsOut, PacketsTotal, PacketsLostIn, PacketsLostOut, PacketsLostTotal, PacketLossPct, ");
 	}
 	else
 	{
-		Output += FString::Printf(TEXT("%d, %0.f, %d, %d, %d, %d, %d, %d, %0.2f"),
+		Output += FString::Printf(TEXT("%d, %0.f, %d, %d, %d, %d, %d, %d, %0.2f, "),
 			NetworkStats.PerSecondStats.ConnectionCount,
 			NetworkStats.PerSecondStats.Ping,
 
@@ -324,15 +332,20 @@ FString FPCom_RuntimeTelemetryCollector::GetDetailedStatsToLog(const FDateTime& 
 	// gameplay stats
 	if (bHeader)
 	{
-		Output += TEXT("PlayerControllers, AIControllers, Pawns");
+		Output += TEXT("PlayerControllers, AIControllers, Pawns, ");
 	}
 	else
 	{
-		Output += FString::Printf(TEXT("%d, %d, =%d"),
+		Output += FString::Printf(TEXT("%d, %d, %d, "),
 			PrimaryStats.PerSecondStats.PlayerControllerCount,
 			PrimaryStats.PerSecondStats.AIControllerCount,
 			PrimaryStats.PerSecondStats.PawnCount
 		);
+	}
+
+	if (LogStatsToStringDel.IsBound())
+	{
+		Output += LogStatsToStringDel.Execute(Time, bHeader);
 	}
 
 	// end of line
