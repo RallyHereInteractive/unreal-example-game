@@ -74,6 +74,8 @@ struct FPCom_TelemetryNetworkStats
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnTelemetrySampledNative, const FPCom_TelemetryPrimaryStats&, const FPCom_TelemetryNetworkStats&);
 
+DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnLogStatsToString, const FDateTime&, bool);
+
 class FPCom_RuntimeTelemetryCollector : public TSharedFromThis<FPCom_RuntimeTelemetryCollector>
 {
 public:
@@ -85,6 +87,7 @@ public:
     virtual void Tick(float DeltaSeconds);
 
     FOnTelemetrySampledNative& OnTelemetrySampledNative() { return OnTelemetrySampledNativeDel; }
+	FOnLogStatsToString& OnLogStatsToString() { return LogStatsToStringDel; }
 
     const FString& GetTelemetryId() const { return TelemetryId; }
     const UWorld* GetWorld() const { return ParentWorld.Get(); }
@@ -95,7 +98,9 @@ protected:
     FString TelemetryId;
 
     // File to log to
-    class FOutputDeviceFile* LogFile;
+    class FArchive* StatsFileCSV;
+
+	bool bHasWrittenCSVHeader;
 
     // Delegate that fires on the per second stats being collected
     FOnTelemetrySampledNative OnTelemetrySampledNativeDel;
@@ -126,7 +131,10 @@ protected:
     virtual void CollectPerFrameStats(float DeltaSeconds);
     virtual void CollectPerSecondStats();
 
-    virtual FString GetDetailedStatsToLog(double Time);
+    virtual FString LogStatsToString(const FDateTime& Time, bool bHeader);
+
+	// Delegate that fires when logging stats to string to allow for custom additions
+	FOnLogStatsToString LogStatsToStringDel;
 
 private:
     
