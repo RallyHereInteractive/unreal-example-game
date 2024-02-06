@@ -273,10 +273,10 @@ void ARHHUDCommon::GetRegionList(TMap<FString, FText>& OutRegionIdToNameMap) con
 			{
 				auto& Regions = pMMCache->GetAllRegions();
 
-				TArray<FRHAPI_SiteSettings> RegionList;
+				TArray<FRHAPI_Region> RegionList;
 				RegionList.Append(Regions);
 
-				RegionList.Sort([](const FRHAPI_SiteSettings& A, const FRHAPI_SiteSettings& B) -> bool
+				RegionList.Sort([](const FRHAPI_Region& A, const FRHAPI_Region& B) -> bool
 				{
 					return A.GetSortOrder() < B.GetSortOrder();
 				});
@@ -289,7 +289,7 @@ void ARHHUDCommon::GetRegionList(TMap<FString, FText>& OutRegionIdToNameMap) con
 
 					for (const auto& Region : RegionList)
 					{
-						const FString RegionId = FString::Printf(TEXT("%d"), Region.SiteId);
+						const FString RegionId = FString::Printf(TEXT("%d"), Region.GetRegionId());
 						FString RegionName;
 						if (ReferenceRegionsAndNames.Contains(RegionId))
 						{
