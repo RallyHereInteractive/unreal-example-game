@@ -271,7 +271,7 @@ void ARHHUDCommon::GetRegionList(TMap<FString, FText>& OutRegionIdToNameMap) con
 		{
 			if (URH_MatchmakingBrowserCache* pMMCache = pGISS->GetMatchmakingCache())
 			{
-				auto& Regions = pMMCache->GetAllRegions();
+				auto Regions = pMMCache->GetAllRegions();
 
 				TArray<FRHAPI_Region> RegionList;
 				RegionList.Append(Regions);
