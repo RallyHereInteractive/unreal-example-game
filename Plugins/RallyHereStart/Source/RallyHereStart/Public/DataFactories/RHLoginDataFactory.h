@@ -172,7 +172,7 @@ private:
 	void HandleControllerPairingChange(FInputDeviceId InputDeviceId, FPlatformUserId NewUserPlatformId, FPlatformUserId OldUserPlatformId);
 
 	UFUNCTION()
-	void HandlePlayerLoggedOut();
+	void HandlePlayerLoggedOut(bool bAuthTokenExpired);
 
 	UFUNCTION(BlueprintPure, Category = "Login")
 	bool AllowUserSwitching() const;

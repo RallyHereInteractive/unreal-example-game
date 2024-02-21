@@ -179,7 +179,7 @@ void URHLoginDataFactory::RecordLoginState(ERHLoginState NewState)
     }
 }
 
-void URHLoginDataFactory::HandlePlayerLoggedOut()
+void URHLoginDataFactory::HandlePlayerLoggedOut(bool bAuthTokenExpired)
 {
 	RecordLoginState(ERHLoginState::ELS_LoggedOut);
 }
