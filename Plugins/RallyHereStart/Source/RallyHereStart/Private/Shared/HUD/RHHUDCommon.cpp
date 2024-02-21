@@ -289,7 +289,7 @@ void ARHHUDCommon::GetRegionList(TMap<FString, FText>& OutRegionIdToNameMap) con
 
 					for (const auto& Region : RegionList)
 					{
-						const FString RegionId = FString::Printf(TEXT("%d"), Region.GetRegionId());
+						const FString RegionId = Region.GetRegionId();
 						FString RegionName;
 						if (ReferenceRegionsAndNames.Contains(RegionId))
 						{
