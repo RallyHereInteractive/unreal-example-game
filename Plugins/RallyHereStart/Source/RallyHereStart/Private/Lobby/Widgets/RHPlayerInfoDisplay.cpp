@@ -70,7 +70,7 @@ void URHPlayerInfoDisplay::UninitializeWidget_Implementation()
 	{
 		if (URH_PlayerPresence* MyPresence = MyPlayerInfo->GetPresence())
 		{
-			MyPresence->OnPresenceUpdatedDelegate.RemoveAll(this);
+			MyPresence->OnUpdatedDelegate.RemoveAll(this);
 		}
 	}
 }
@@ -105,7 +105,7 @@ void URHPlayerInfoDisplay::SetPlayerInfo(URH_PlayerInfo* PlayerInfo)
 	{
 		if (URH_PlayerPresence* MyPresence = MyPlayerInfo->GetPresence())
 		{
-			MyPresence->OnPresenceUpdatedDelegate.RemoveAll(this);
+			MyPresence->OnUpdatedDelegate.RemoveAll(this);
 		}
 	}
 
@@ -113,7 +113,13 @@ void URHPlayerInfoDisplay::SetPlayerInfo(URH_PlayerInfo* PlayerInfo)
 	
 	if (URH_PlayerPresence* MyPresence = MyPlayerInfo->GetPresence())
 	{
-		MyPresence->OnPresenceUpdatedDelegate.AddUObject(this, &URHPlayerInfoDisplay::OnPlayerPresenceUpdated);
+		MyPresence->OnUpdatedDelegate.AddWeakLambda(this, [this](URH_PlayerInfoSubobject* PlayerPresence)
+			{
+				if (MyPlayerInfo != nullptr && MyPlayerInfo->GetPresence() != nullptr)
+				{
+					OnPlayerPresenceUpdated(MyPlayerInfo->GetPresence());
+				}
+			});
 		MyPresence->RequestUpdate();
 	}
 }
@@ -145,11 +151,12 @@ void URHPlayerInfoDisplay::GetPlayerPlatform(const FRH_GetPlayerPlatformDynamicD
 		}
 	}
 
-	GetPlayerPresence(FRH_OnRequestPlayerPresenceDelegate::CreateUObject(this, &URHPlayerInfoDisplay::OnGetPlayerPlatformPresenceResponse, Delegate));
+	GetPlayerPresence(FRH_OnRequestPlayerInfoSubobjectDelegate::CreateUObject(this, &URHPlayerInfoDisplay::OnGetPlayerPlatformPresenceResponse, Delegate));
 }
 
-void URHPlayerInfoDisplay::OnGetPlayerPlatformPresenceResponse(bool bSuccessful, URH_PlayerPresence* PlayerPresence, const FRH_GetPlayerPlatformDynamicDelegate Delegate)
+void URHPlayerInfoDisplay::OnGetPlayerPlatformPresenceResponse(bool bSuccessful, URH_PlayerInfoSubobject* PlayerSubobject, const FRH_GetPlayerPlatformDynamicDelegate Delegate)
 {
+	auto PlayerPresence = Cast<URH_PlayerPresence>(PlayerSubobject);
 	if (bSuccessful && PlayerPresence != nullptr)
 	{
 		if (!PlayerPresence->Platform.IsEmpty())
@@ -184,7 +191,7 @@ void URHPlayerInfoDisplay::OnGetPlayerPlatformPlatformsResponse(bool bSuccess, c
 	Delegate.ExecuteIfBound(URHUIBlueprintFunctionLibrary::ConvertPlatformTypeToDisplayType(MyHud.Get(), ERHAPI_Platform::Anon));
 }
 
-void URHPlayerInfoDisplay::GetPlayerPresence(const FRH_OnRequestPlayerPresenceDelegate& Delegate) const
+void URHPlayerInfoDisplay::GetPlayerPresence(const FRH_OnRequestPlayerInfoSubobjectDelegate& Delegate) const
 {
 	if (MyPlayerInfo == nullptr || MyPlayerInfo->GetPresence() == nullptr)
 	{

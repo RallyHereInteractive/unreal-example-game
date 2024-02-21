@@ -964,11 +964,11 @@ void URHSocialOverlay::RequestPresenceForPlayer(const URH_PlayerInfo* PlayerInfo
 {
 	if (PlayerInfo != nullptr && PlayerInfo->GetPresence() != nullptr)
 	{
-		PlayerInfo->GetPresence()->RequestUpdate(false, FRH_OnRequestPlayerPresenceDelegate::CreateUObject(this, &URHSocialOverlay::HandleGetPresence));
+		PlayerInfo->GetPresence()->RequestUpdate(false, FRH_OnRequestPlayerInfoSubobjectDelegate::CreateUObject(this, &URHSocialOverlay::HandleGetPresence));
 	}
 }
 
-void URHSocialOverlay::HandleGetPresence(bool bSuccessful, URH_PlayerPresence* PresenceInfo)
+void URHSocialOverlay::HandleGetPresence(bool bSuccessful, URH_PlayerInfoSubobject* PresenceInfo)
 {
 	if (bSuccessful)
 	{

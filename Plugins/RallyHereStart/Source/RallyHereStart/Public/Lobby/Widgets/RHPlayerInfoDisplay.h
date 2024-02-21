@@ -50,12 +50,12 @@ protected:
 	URH_FriendSubsystem* GetRH_LocalPlayerFriendSubsystem() const;
 
 	UFUNCTION()
-	void OnGetPlayerPlatformPresenceResponse(bool bSuccessful, URH_PlayerPresence* NewPresence, const FRH_GetPlayerPlatformDynamicDelegate Delegate);
+	void OnGetPlayerPlatformPresenceResponse(bool bSuccessful, URH_PlayerInfoSubobject* NewPresence, const FRH_GetPlayerPlatformDynamicDelegate Delegate);
 
 	UFUNCTION()
 	void OnGetPlayerPlatformPlatformsResponse(bool bSuccess, const TArray<URH_PlayerPlatformInfo*>& Platforms, const FRH_GetPlayerPlatformDynamicDelegate Delegate);
 
-	void GetPlayerPresence(const FRH_OnRequestPlayerPresenceDelegate& Delegate) const;
+	void GetPlayerPresence(const FRH_OnRequestPlayerInfoSubobjectDelegate& Delegate) const;
 
 	UFUNCTION()
 	void RHUpdateFriends(URH_RHFriendAndPlatformFriend* Friend);
