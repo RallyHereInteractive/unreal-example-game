@@ -17,7 +17,7 @@ public:
     ARHPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
     virtual void BeginPlay();
 	
-	virtual void OnRep_UniqueId() override;
+	virtual void OnSetUniqueId() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Player State")
 	class URH_PlayerInfo* GetPlayerInfo(ARHHUDCommon* Hud) const;

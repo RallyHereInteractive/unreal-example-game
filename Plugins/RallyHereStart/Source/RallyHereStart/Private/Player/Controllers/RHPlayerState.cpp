@@ -56,9 +56,14 @@ void ARHPlayerState::BeginPlay()
 */
 }
 
-void ARHPlayerState::OnRep_UniqueId()
+void ARHPlayerState::OnSetUniqueId()
 {
-	Super::OnRep_UniqueId();
+	Super::OnSetUniqueId();
+
+	if (GetNetMode() == ENetMode::NM_DedicatedServer)
+	{
+		return;
+	}
 
 	if (GetUniqueId().IsValid())
 	{
