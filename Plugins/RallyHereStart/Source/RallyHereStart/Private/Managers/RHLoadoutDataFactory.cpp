@@ -276,12 +276,15 @@ void URHLoadoutDataFactory::GetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo,
 	if (auto FoundLastRequested = LastRequestSettings.Find(PlayerInfo))
 	{
 		FDateTime Now = FDateTime::UtcNow();
-		if (FoundLastRequested->GetTicks() != 0 && (*FoundLastRequested) + StaleThreshold < Now && !bForceRefresh)
+		if (FoundLastRequested->GetTicks() != 0 && !bForceRefresh)
 		{
-			if (auto FoundLoadouts = PlayerLoadouts.Find(PlayerInfo))
+			if ((*FoundLastRequested) + StaleThreshold < Now || StaleThreshold.IsZero())
 			{
-				Delegate.ExecuteIfBound(PlayerInfo, GetLoadoutsFromWrapper(*FoundLoadouts));
-				return;
+				if (auto FoundLoadouts = PlayerLoadouts.Find(PlayerInfo))
+				{
+					Delegate.ExecuteIfBound(PlayerInfo, GetLoadoutsFromWrapper(*FoundLoadouts));
+					return;
+				}
 			}
 		}
 	}
@@ -321,16 +324,19 @@ void URHLoadoutDataFactory::GetPlayerLoadoutSettingByLoadoutType(URH_PlayerInfo*
 	if (auto FoundLastRequested = LastRequestSettings.Find(PlayerInfo))
 	{
 		FDateTime Now = FDateTime::UtcNow();
-		if (FoundLastRequested->GetTicks() != 0 && (*FoundLastRequested) + StaleThreshold < Now && !bForceRefresh)
+		if (FoundLastRequested->GetTicks() != 0 && !bForceRefresh)
 		{
-			if (auto FoundLoadouts = PlayerLoadouts.Find(PlayerInfo))
+			if ((*FoundLastRequested) + StaleThreshold < Now || StaleThreshold.IsZero())
 			{
-				for (URH_PlayerLoadout* Loadout : GetLoadoutsFromWrapper(*FoundLoadouts))
+				if (auto FoundLoadouts = PlayerLoadouts.Find(PlayerInfo))
 				{
-					if (Loadout != nullptr && Loadout->GetType() == int32(LoadoutType))
+					for (URH_PlayerLoadout* Loadout : GetLoadoutsFromWrapper(*FoundLoadouts))
 					{
-						Delegate.ExecuteIfBound(PlayerInfo, Loadout);
-						return;
+						if (Loadout != nullptr && Loadout->GetType() == int32(LoadoutType))
+						{
+							Delegate.ExecuteIfBound(PlayerInfo, Loadout);
+							return;
+						}
 					}
 				}
 			}
