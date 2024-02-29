@@ -168,7 +168,7 @@ private:
 	bool HasInitialFriendsData;
 
 	void RequestPresenceForPlayer(const URH_PlayerInfo* PlayerInfo);
-	void HandleGetPresence(bool bSuccessful, URH_PlayerPresence* PresenceInfo);
+	void HandleGetPresence(bool bSuccessful, URH_PlayerInfoSubobject* PresenceInfo);
 	void SortPlayerToSocialSection(URH_RHFriendAndPlatformFriend* Friend);
 
 	UFUNCTION()

@@ -3,6 +3,7 @@
 #include "RH_GameInstanceSubsystem.h"
 #include "RH_PlayerInventory.h"
 #include "RH_PlayerInfoSubsystem.h"
+#include "RH_MatchSubsystem.h"
 #include "Managers/RHStatsTracker.h"
 
 #include "Analytics.h"
@@ -302,6 +303,58 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 				
 				// close out the analytics session
 				AnalyticsProvider->EndSession();
+			}
+		}
+	}
+
+	// record the match history data
+	if (GISubsystem != nullptr)
+	{
+		// assume we are using automatic match updates, which will keep track of players entering and leaving the match, and has an active match id
+		auto MatchSubsystem = GISubsystem->GetMatchSubsystem();
+		if (MatchSubsystem != nullptr && MatchSubsystem->HasActiveMatchId())
+		{
+			// update the match player data (individual calls to patch the data)
+			for (auto Tracker : m_StatsTrackers)
+			{
+				auto PlayerUuid = Tracker.Key;
+				FRHAPI_MatchPlayerRequest MatchPlayerRequest;
+				MatchPlayerRequest.SetPlayerUuid(PlayerUuid);
+				MatchPlayerRequest.SetPlacement(1);
+				MatchPlayerRequest.SetDurationSeconds(Tracker.Value->GetTimespan().GetTotalSeconds());
+
+				TMap<FString, FString> CustomData;
+				CustomData.Add(TEXT("XPEarned"), FString::FromInt(Tracker.Value->GetEarnedPlayerXp()));
+				CustomData.Add(TEXT("BattlePassXPEarned"), FString::FromInt(Tracker.Value->GetEarnedBattlepassXp()));
+				
+				//MatchPlayerRequest.SetCustomData(CustomData);
+
+				MatchSubsystem->UpdateMatchPlayer(MatchSubsystem->GetActiveMatchId(), PlayerUuid, MatchPlayerRequest);
+			}
+
+			// update the match data (single call to patch the data)
+			{
+				FRHAPI_MatchRequest MatchRequest;
+
+				MatchRequest.SetType(TEXT("TestMatch"));
+				MatchRequest.SetState(ERHAPI_MatchState::Closed);
+
+				// set ending time
+				MatchRequest.SetEndTimestamp(FDateTime::UtcNow());
+
+				// calculate the duration of the match if we can
+				FRHAPI_MatchWithPlayers ExistingMatch;
+				if (MatchSubsystem->GetMatch(MatchSubsystem->GetActiveMatchId(), ExistingMatch))
+				{
+					if (auto StartTime = ExistingMatch.GetStartTimestampOrNull())
+					{
+						MatchRequest.SetDurationSeconds((*StartTime - MatchRequest.GetEndTimestamp()).GetTotalSeconds());
+					}
+				}
+
+				//MatchRequest.SetCustomData(CustomData);
+
+				MatchSubsystem->UpdateMatch(MatchSubsystem->GetActiveMatchId(), MatchRequest);
 			}
 		}
 	}

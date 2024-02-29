@@ -56,7 +56,7 @@ void URHMassInviteModal::RequestFriends(FRHInviteReceivePlayers OnReceivePlayers
 					const auto PlayerUuid = Friend->GetPlayerAndPlatformInfo().PlayerUuid;
 					if (const URH_PlayerInfo* PlayerInfo = RHPI->GetPlayerInfo(PlayerUuid))
 					{
-						PlayerInfo->GetPresence()->RequestUpdate(false, FRH_OnRequestPlayerPresenceDelegate::CreateLambda([this, PlayerUuid, ShouldShowDel, OnReceivePlayers](bool bSuccess, URH_PlayerPresence* pPlayerPresence)
+						PlayerInfo->GetPresence()->RequestUpdate(false, FRH_OnRequestPlayerInfoSubobjectDelegate::CreateWeakLambda(this, [this, PlayerUuid, ShouldShowDel, OnReceivePlayers](bool bSuccess, URH_PlayerInfoSubobject* pPlayerPresence)
 							{
 								if (const auto FSS = GetRHFriendSubsystem())
 								{
@@ -229,7 +229,7 @@ void URHMassInviteModal::DoSearch(FText SearchTerm)
 		if (RHPI != nullptr)
 		{
 			// DO LOOK UP
-			RHPI->LookupPlayer(SearchTerm.ToString(), FRH_PlayerInfoLookupPlayerDelegate::CreateLambda([this, SearchTerm](bool bSuccess, const TArray<URH_PlayerInfo*>& PlayerInfos) -> void
+			RHPI->LookupPlayer(SearchTerm.ToString(), FRH_PlayerInfoLookupPlayerDelegate::CreateWeakLambda(this, [this, SearchTerm](bool bSuccess, const TArray<URH_PlayerInfo*>& PlayerInfos) -> void
 				{
 					// Only display results if the results are for the last executed search
 					if (ActiveSearchTerm.EqualTo(SearchTerm))
@@ -240,9 +240,9 @@ void URHMassInviteModal::DoSearch(FText SearchTerm)
 							{
 								if (URH_PlayerPresence* pPresence = PlayerInfo->GetPresence())
 								{
-									PlayerInfo->GetPresence()->RequestUpdate(true, FRH_OnRequestPlayerPresenceDelegate::CreateLambda([this, PlayerInfo](bool bSuccess, URH_PlayerPresence* pPlayerPresence)
+									PlayerInfo->GetPresence()->RequestUpdate(true, FRH_OnRequestPlayerInfoSubobjectDelegate::CreateWeakLambda(this, [this](bool bSuccess, URH_PlayerInfoSubobject* pPlayerPresence)
 										{
-											CheckAndAddPlayerToSearchResult(PlayerInfo);
+											CheckAndAddPlayerToSearchResult(pPlayerPresence->GetPlayerInfo());
 										}));
 								}
 							}
