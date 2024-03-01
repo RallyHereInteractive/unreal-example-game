@@ -11,7 +11,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "PlatformFeatures.h"
 #include "RH_LocalPlayerLoginSubsystem.h"
-#include "RallyHereIntegration/Public/RH_OnlineSubsystemNames.h"
+#include "RH_OnlineSubsystemNames.h"
 #include "GenericPlatform/GenericPlatformInputDeviceMapper.h"
 
 #if RALLYSTART_USE_WEBAUTH_MODULE

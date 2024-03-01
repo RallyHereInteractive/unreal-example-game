@@ -81,7 +81,7 @@ void URHGameInstance::Init()
 		AppReactivatedHandle = FCoreDelegates::ApplicationHasReactivatedDelegate.AddUObject(this, &URHGameInstance::AppReactivatedCallback);
 	}
 
-	if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+	if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 	{
 		if (URH_GameInstanceSubsystem* pGISS = GetSubsystem<URH_GameInstanceSubsystem>())
 		{
@@ -89,7 +89,7 @@ void URHGameInstance::Init()
 			{
 				ConfigSubsystem->OnSettingsUpdated.AddWeakLambda(this, [this](URH_ConfigSubsystem* pUpdatedConfigSubsystem)
 					{
-						auto* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+						auto* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
 						if (pAssetManager != nullptr)
 						{
 							pAssetManager->InitializeDisabledItems(pUpdatedConfigSubsystem);

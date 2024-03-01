@@ -2,7 +2,6 @@
 #include "PlatformInventoryItem/PlatformInventoryItem.h"
 #include "Managers/RHStoreItemHelper.h"
 #include "RH_PlayerInfoSubsystem.h"
-#include "RallyHereAPI/Public/PlatformID.h"
 #include "RHOrderManager.generated.h"
 
 UENUM(BlueprintType)

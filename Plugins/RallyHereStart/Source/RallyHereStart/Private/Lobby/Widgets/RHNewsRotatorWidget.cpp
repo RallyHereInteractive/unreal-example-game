@@ -180,7 +180,7 @@ void URHNewsRotatorWidget::OnNewsPanelClicked(URHNewsRotatorData* Panel)
 		{
 			FRH_ItemId ItemId = FCString::Atoi(*Panel->ActionDetails);
 
-			if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+			if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 			{
 				TSoftObjectPtr<UPlatformInventoryItem> SoftItemPtr = pAssetManager->GetSoftPrimaryAssetByItemId<UPlatformInventoryItem>(ItemId);
 				if (SoftItemPtr.IsValid())

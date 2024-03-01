@@ -741,7 +741,7 @@ FText URHUIBlueprintFunctionLibrary::GetStatusMessage(ERHPlayerOnlineStatus Play
 URHCurrency* URHUIBlueprintFunctionLibrary::GetCurrencyItemByItemId(const FRH_ItemId& CurrencyItemId)
 {
 	URHCurrency* CurrencyItem = nullptr;
-	if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+	if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 	{
 		CurrencyItem = AssetManager->GetSoftPrimaryAssetByItemId<URHCurrency>(CurrencyItemId).Get();
 	}

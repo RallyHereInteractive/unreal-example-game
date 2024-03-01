@@ -25,7 +25,7 @@ void UItemCollection::PostLoad()
 {
     // Asset manager will not be initialized before engine is available, so cannot update collection in that case
 
-    UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+    UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
 	if (pAssetManager != nullptr && pAssetManager->HasCompletedInitialAssetScan())
 	{
 		// Don't need to call PostInitialAssetScan() since UpdateAssetBundleData() will be called by Super::PostLoad()
@@ -55,7 +55,7 @@ void UItemCollection::UpdateCollection()
 		return;
 	}
 
-	UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+	UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
 	if (pAssetManager == nullptr)
 	{
 		return;
@@ -84,7 +84,7 @@ void UItemCollection::UpdateAssetBundleData()
 {
     Super::UpdateAssetBundleData();
 
-    if (!UAssetManager::IsValid())
+    if (!UAssetManager::IsInitialized())
     {
         return;
     }

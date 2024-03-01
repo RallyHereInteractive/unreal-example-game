@@ -247,7 +247,7 @@ FORCEINLINE TSoftObjectPtr<T> UPlatformInventoryItem::GetItemByFriendlyName(cons
 template<typename T>
 FORCEINLINE void UPlatformInventoryItem::SortByFriendlySearchName(TArray<TSoftObjectPtr<T>>& Items)
 {
-    UAssetManager* pAssetManager = UAssetManager::GetIfValid();
+    UAssetManager* pAssetManager = UAssetManager::GetIfInitialized();
     Items.Sort([&pAssetManager](const TSoftObjectPtr<T>& A, const TSoftObjectPtr<T>& B) -> bool
     {
         return StaticGetFriendlySearchName(A, pAssetManager) < StaticGetFriendlySearchName(B, pAssetManager);
@@ -257,7 +257,7 @@ FORCEINLINE void UPlatformInventoryItem::SortByFriendlySearchName(TArray<TSoftOb
 template<typename T>
 FORCEINLINE void UPlatformInventoryItem::SortByDisplayName(TArray<TSoftObjectPtr<T>>& Items)
 {
-    UAssetManager* pAssetManager = UAssetManager::GetIfValid();
+    UAssetManager* pAssetManager = UAssetManager::GetIfInitialized();
     Items.Sort([&pAssetManager](const TSoftObjectPtr<T>& A, const TSoftObjectPtr<T>& B) -> bool
     {
         return StaticGetDisplayName(A, pAssetManager).CompareTo(StaticGetDisplayName(B, pAssetManager)) <= 0;
@@ -279,7 +279,7 @@ FORCEINLINE FString UPlatformInventoryItem::StaticGetFriendlySearchName(const TS
 
     if (InAssetManager == nullptr)
     {
-        InAssetManager = UAssetManager::GetIfValid();
+        InAssetManager = UAssetManager::GetIfInitialized();
     }
 
     if (InAssetManager == nullptr)
@@ -312,7 +312,7 @@ FORCEINLINE FText UPlatformInventoryItem::StaticGetDisplayName(const TSoftObject
 
     if (InAssetManager == nullptr)
     {
-        InAssetManager = UAssetManager::GetIfValid();
+        InAssetManager = UAssetManager::GetIfInitialized();
     }
 
     if (InAssetManager == nullptr)

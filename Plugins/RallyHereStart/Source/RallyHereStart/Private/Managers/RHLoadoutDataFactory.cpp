@@ -69,7 +69,7 @@ bool URH_PlayerLoadout::GetEquippedItemInSlot(FOnGetEquippedLoadoutItem Event, E
 
 	if (FoundItemId.IsValid())
 	{
-		if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+		if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 		{
 			AsyncLoadItem(Event, AssetManager->GetSoftPrimaryAssetByItemId<UPlatformInventoryItem>(FoundItemId));
 			return true;

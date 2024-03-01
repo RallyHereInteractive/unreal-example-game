@@ -73,7 +73,7 @@ void UPInv_AssetManagerSettings::PostEditChangeProperty(FPropertyChangedEvent& P
 
 	if (PropertyChangedEvent.Property)
 	{
-		UPInv_AssetManager* pAssetManger = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+		UPInv_AssetManager* pAssetManger = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
 		if(pAssetManger != nullptr)
 		{
 			pAssetManger->ReinitializeFromConfig();

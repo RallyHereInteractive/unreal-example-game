@@ -13,10 +13,10 @@
 #include "PlayerExperience/PlayerExperienceGlobals.h"
 #include "PlayerExperience/PlayerExp_MatchTracker.h"
 #include "AIController.h"
-#include "RallyHereIntegration/Public/RH_OnlineSubsystemNames.h"
+#include "RH_OnlineSubsystemNames.h"
 #include "Engine/GameInstance.h"
-#include "RallyHereIntegration/Public/RH_GameInstanceSubsystem.h"
-#include "RallyHereIntegration/Public/RH_GameInstanceSessionSubsystem.h"
+#include "RH_GameInstanceSubsystem.h"
+#include "RH_GameInstanceSessionSubsystem.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRHGameMode, All, All);
 

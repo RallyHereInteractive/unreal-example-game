@@ -26,7 +26,7 @@ void UPlatformInventoryItem::PostLoad()
 {
     Super::PostLoad();
 
-    UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+    UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
     if (pAssetManager != nullptr && pAssetManager->HasCompletedInitialAssetScan())
     {
         PostInitialAssetScan();
@@ -39,7 +39,7 @@ void UPlatformInventoryItem::PostLoad()
 
 void UPlatformInventoryItem::PostInitialAssetScan()
 {
-    UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+    UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
     if (pAssetManager != nullptr && pAssetManager->HasCompletedInitialAssetScan())
     {
         if (InitialAssetScanHandle.IsValid())
@@ -61,7 +61,7 @@ void UPlatformInventoryItem::SetFriendlySearchName(const FString& InFriendlyName
 
 FSoftObjectPath UPlatformInventoryItem::GetItemByFriendlyName(const FString& InFriendlyName, const FTopLevelAssetPath& ClassPathName)
 {
-	if (UAssetManager::IsValid())
+	if (UAssetManager::IsInitialized())
 	{
 		UAssetManager& Manager = UAssetManager::Get();
 		IAssetRegistry& AssetRegistry = Manager.GetAssetRegistry();
@@ -237,7 +237,7 @@ EExternalSkuSource UPlatformInventoryItem::GetSkuSource()
 
 bool UPlatformInventoryItem::IsItemDisabled(bool bIncludeTempDisabled) const
 {
-	if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+	if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 	{
 		if (bIncludeTempDisabled)
 		{
@@ -252,7 +252,7 @@ bool UPlatformInventoryItem::IsItemDisabled(bool bIncludeTempDisabled) const
 
 bool UPlatformInventoryItem::IsItemTempDisabled() const
 {
-	if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+	if (UPInv_AssetManager* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 	{
 		return pAssetManager->IsItemIdTempDisabled(GetItemId());
 	}

@@ -39,7 +39,7 @@ void URHStoreItemHelper::Initialize(UGameInstance* InGameInstance)
 	}
 
     // Because Premium and Free Currencies are so ubiqutous, we will load them and keep them cached
-	if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+	if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 	{
 		if (FreeCurrencyItemId.IsValid())
 		{
@@ -846,7 +846,7 @@ TSoftObjectPtr<UPlatformInventoryItem> URHStoreItemHelper::GetInventoryItem(cons
 {
 	if (ItemId.IsValid())
 	{
-		UPInv_AssetManager* pManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+		UPInv_AssetManager* pManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
 		if (pManager != nullptr)
 		{
 			return pManager->GetSoftPrimaryAssetByItemId<UPlatformInventoryItem>(ItemId);
@@ -1232,7 +1232,7 @@ bool URHStoreItemHelper::CanRedeemVoucher(URHStoreItem* VoucherItem)
 URHCurrency* URHStoreItemHelper::GetCurrencyItem(const FRH_ItemId& ItemId) const
 {
 	URHCurrency* CurrencyItem = nullptr;
-	if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid()))
+	if (UPInv_AssetManager* AssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized()))
 	{
 		CurrencyItem = AssetManager->GetSoftPrimaryAssetByItemId<URHCurrency>(ItemId).Get();
 	}
@@ -1286,7 +1286,7 @@ void URHStoreItem::Initialize(URHStoreItemHelper* pHelper, const FRHAPI_Loot& Lo
 	VendorId = LootItem.GetVendorId();
 	pItemHelper = pHelper;
 
-	UPInv_AssetManager* pManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+	UPInv_AssetManager* pManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
 
 	if (pManager != nullptr)
 	{

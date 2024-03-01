@@ -36,7 +36,7 @@ void UPlatformStoreAsset::UpdateAssetBundleData()
 {
 	Super::UpdateAssetBundleData();
 
-	if (!UAssetManager::IsValid())
+	if (!UAssetManager::IsInitialized())
 	{
 		if (!ReadyForBundleDataHandle.IsValid())
 		{

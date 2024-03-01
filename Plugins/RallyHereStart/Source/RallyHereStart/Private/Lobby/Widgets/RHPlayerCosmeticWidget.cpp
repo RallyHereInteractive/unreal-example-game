@@ -36,7 +36,7 @@ bool URHPlayerCosmeticWidget::GetItemsForSlot(FOnGetCosmeticItems Event, ERHLoad
 
 bool URHPlayerCosmeticWidget::GetItemsByTag(FOnGetCosmeticItems Event, ERHLoadoutSlotTypes SlotType, FName TagName)
 {
-	UPInv_AssetManager* AssMan = Cast<UPInv_AssetManager>(UPInv_AssetManager::GetIfValid());
+	UPInv_AssetManager* AssMan = Cast<UPInv_AssetManager>(UPInv_AssetManager::GetIfInitialized());
 
 	if (AssMan != nullptr)
 	{

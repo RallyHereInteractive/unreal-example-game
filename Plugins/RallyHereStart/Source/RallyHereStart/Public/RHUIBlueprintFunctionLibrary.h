@@ -239,7 +239,7 @@ private:
     {
         Item = nullptr;
 
-        UPInv_AssetManager* pManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfValid());
+        UPInv_AssetManager* pManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
         if (pManager != nullptr)
         {
             auto SoftItem = pManager->GetSoftPrimaryAssetByItemId<UPlatformInventoryItem>(ItemId);
