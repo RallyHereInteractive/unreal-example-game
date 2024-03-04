@@ -54,6 +54,7 @@ void UPlayerExp_MatchReportSender::Cleanup()
 
 void UPlayerExp_MatchReportSender::RequestSendReport(class UGameInstance* GameInstance, const TSharedRef<FJsonObject>& InReportJsonObject)
 {
+	/*
 	if (GameInstance == nullptr)
 	{
 		UE_LOG(LogPlayerExperience, Warning, TEXT("No game instance when attempting to send report."));
@@ -129,4 +130,5 @@ void UPlayerExp_MatchReportSender::RequestSendReport(class UGameInstance* GameIn
 	pManager->CreateNewRequest(URLHandle, Payload);
 
 	return;
+	*/
 }
