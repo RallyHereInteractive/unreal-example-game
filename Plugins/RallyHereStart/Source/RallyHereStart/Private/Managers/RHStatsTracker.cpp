@@ -198,7 +198,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 			AnalyticsProvider->StartSession();
 
 			// emit a correlation id for the following events so they can be crossreferenced
-			RHStandardEvents::FCorrelationStartEvent::AutoEmit(AnalyticsProvider.Get(), GameInstance);
+			RHStandardEvents::FCorrelationStartEvent::AutoEmit(AnalyticsProvider, GameInstance);
 		}
 
 		for (const auto& TrackerPair : m_StatsTrackers)
@@ -251,7 +251,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 
 						Event.DurationSeconds = Tracker->GetTimespan().GetTotalSeconds();
 
-						Event.EmitTo(AnalyticsProvider.Get());
+						Event.EmitTo(AnalyticsProvider);
 					}
 
 					// emit custom old style match result
@@ -285,7 +285,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 
 						auto PlayerUuid = Tracker->GetPlayerUuid();
 						AnalyticsProvider->SetUserID(PlayerUuid.IsValid() ? PlayerUuid.ToString(EGuidFormats::DigitsWithHyphens) : TEXT(""));
-						Event.EmitTo(AnalyticsProvider.Get());
+						Event.EmitTo(AnalyticsProvider);
 					}
 				}
 			}
@@ -298,7 +298,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 				// emit a correlation end event
 				{
 					RHStandardEvents::FCorrelationEndEvent Event;
-					Event.EmitTo(AnalyticsProvider.Get());
+					Event.EmitTo(AnalyticsProvider);
 				}
 				
 				// close out the analytics session
