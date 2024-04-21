@@ -473,7 +473,7 @@ FRHSocialOverlaySectionInfo URHSocialOverlay::GetSectionForSocialFriend(const UR
 
 	if (const auto FSS = GetRH_LocalPlayerFriendSubsystem())
 	{
-		if (FSS->IsPlayerBlocked(Friend->GetRHPlayerUuid()))
+		if (FSS->IsFriendBlocked(Friend))
 		{
 			return ERHSocialOverlaySection::Blocked;
 		}

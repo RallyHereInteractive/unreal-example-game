@@ -956,7 +956,7 @@ bool URHContextMenu::IsIgnored()
 	{
 		if (auto RhSS = GetRHFriendSubsystem())
 		{
-			return RhSS->IsPlayerBlocked(CurrentFriend->GetRHPlayerUuid());
+			return RhSS->IsFriendBlocked(CurrentFriend);
 		}
 	}
 	return false;
@@ -980,7 +980,7 @@ bool URHContextMenu::IsBlockedByPlatform()
 	{
 		if (auto RhSS = GetRHFriendSubsystem())
 		{
-			return RhSS->IsPlayerPlatformBlocked(CurrentFriend->GetRHPlayerUuid());
+			return RhSS->IsFriendPlatformBlocked(CurrentFriend);
 		}
 	}
 	return false;
