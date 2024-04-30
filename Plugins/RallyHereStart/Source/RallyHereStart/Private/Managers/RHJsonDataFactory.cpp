@@ -613,11 +613,11 @@ void URHJsonDataFactory::TryLoadLandingPanels()
 	}
 
 	FString url;
-	pRH_ConfigSubsystem->GetAppSetting("JSonConfig.url", url);
+	pRH_ConfigSubsystem->GetKV("JSonConfig.url", url);
 
 	FString ConfigFiles;
 	TArray<FString> ConfigFilesArray;
-	pRH_ConfigSubsystem->GetAppSetting("JSonConfig.config_files", ConfigFiles);
+	pRH_ConfigSubsystem->GetKV("JSonConfig.config_files", ConfigFiles);
 	ConfigFiles.ParseIntoArray(ConfigFilesArray, TEXT(","), true);
 
 	for (const FString& uniqueName : ConfigFilesArray)

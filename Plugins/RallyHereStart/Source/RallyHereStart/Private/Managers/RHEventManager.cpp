@@ -143,7 +143,7 @@ FDateTime URHEventManager::GetEventStartTime(FName EventTag) const
 	if (URH_ConfigSubsystem* ConfigSubsystem = GetConfigSubsystem())
 	{
 		FString ConfigEntryNameStartTime = EventTag.ToString() + ".StartTime";
-		ConfigSubsystem->GetAppSetting(ConfigEntryNameStartTime, TimeStartStr);
+		ConfigSubsystem->GetKV(ConfigEntryNameStartTime, TimeStartStr);
 		RallyHereAPI::ParseDateTime(*TimeStartStr, TimeStart);
 	}
 	
@@ -157,7 +157,7 @@ FDateTime URHEventManager::GetEventEndTime(FName EventTag) const
 	if (URH_ConfigSubsystem* ConfigSubsystem = GetConfigSubsystem())
 	{
 		FString ConfigEntryNameEndTime = EventTag.ToString() + ".EndTime";
-		ConfigSubsystem->GetAppSetting(ConfigEntryNameEndTime, TimeEndStr);
+		ConfigSubsystem->GetKV(ConfigEntryNameEndTime, TimeEndStr);
 		RallyHereAPI::ParseDateTime(*TimeEndStr, TimeEnd);
 	}
 	
