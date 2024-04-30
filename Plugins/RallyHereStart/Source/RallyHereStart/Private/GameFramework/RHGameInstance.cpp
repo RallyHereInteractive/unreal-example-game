@@ -87,7 +87,7 @@ void URHGameInstance::Init()
 		{
 			if (URH_ConfigSubsystem* ConfigSubsystem = pGISS->GetConfigSubsystem())
 			{
-				ConfigSubsystem->OnSettingsUpdated.AddWeakLambda(this, [this](URH_ConfigSubsystem* pUpdatedConfigSubsystem)
+				ConfigSubsystem->OnKVsUpdated.AddWeakLambda(this, [this](URH_ConfigSubsystem* pUpdatedConfigSubsystem)
 					{
 						auto* pAssetManager = Cast<UPInv_AssetManager>(UAssetManager::GetIfInitialized());
 						if (pAssetManager != nullptr)

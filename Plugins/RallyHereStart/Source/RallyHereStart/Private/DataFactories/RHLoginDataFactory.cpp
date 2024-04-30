@@ -82,12 +82,12 @@ void URHLoginDataFactory::Initialize(ARHHUDCommon* InHud)
 				if (URH_ConfigSubsystem* pRH_ConfigSubsystem = pGISS->GetConfigSubsystem())
 				{
 					FString LimitLogins;
-					CachedLoginsLimited = pRH_ConfigSubsystem->GetAppSetting("game.limit_logins", LimitLogins) && LimitLogins == "1";
+					CachedLoginsLimited = pRH_ConfigSubsystem->GetKV("game.limit_logins", LimitLogins) && LimitLogins == "1";
 
-					pRH_ConfigSubsystem->OnSettingsUpdated.AddWeakLambda(this, [this](const URH_ConfigSubsystem* pRH_ConfigSubsystem)
+					pRH_ConfigSubsystem->OnKVsUpdated.AddWeakLambda(this, [this](const URH_ConfigSubsystem* pRH_ConfigSubsystem)
 						{
 							FString LimitLogins;
-							bool NewLoginsLimited = pRH_ConfigSubsystem->GetAppSetting("game.limit_logins", LimitLogins) && LimitLogins == "1";
+							bool NewLoginsLimited = pRH_ConfigSubsystem->GetKV("game.limit_logins", LimitLogins) && LimitLogins == "1";
 							
 							if (CachedLoginsLimited != NewLoginsLimited)
 							{

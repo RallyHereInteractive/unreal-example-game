@@ -90,8 +90,8 @@ void UPInv_AssetManager::InitializeDisabledItems(URH_ConfigSubsystem* ConfigSubs
 	TArray<FString> DisabledItemIdsSetting;
 	TArray<FString> TempDisabledItemIdsSetting;
 
-	ConfigSubsystem->GetAppSetting(TEXT("game.disabled_item_ids"), DisabledItemIdsSettingStr);
-	ConfigSubsystem->GetAppSetting(TEXT("game.temp_disabled_item_ids"), TempDisabledItemIdsSettingStr);
+	ConfigSubsystem->GetKV(TEXT("game.disabled_item_ids"), DisabledItemIdsSettingStr);
+	ConfigSubsystem->GetKV(TEXT("game.temp_disabled_item_ids"), TempDisabledItemIdsSettingStr);
 
 	DisabledItemIdsSettingStr.ParseIntoArray(DisabledItemIdsSetting, TEXT(","));
 	TempDisabledItemIdsSettingStr.ParseIntoArray(TempDisabledItemIdsSetting, TEXT(","));
