@@ -180,7 +180,7 @@ void ARHExampleGameMode::CheckEmptyTimer(bool bForceStop)
 		// if timer delay is set and is not active, activate it
 		if (ShutdownOnEmptyDelay > 0 && !EmptyServerTimerHandle.IsValid())
 		{
-			UE_LOG(RHExampleGame, Log, TEXT("Starting empty timer (Delay = %d seconds)"), ShutdownOnEmptyDelay);
+			UE_LOG(RHExampleGame, Log, TEXT("Starting empty timer (Delay = %f seconds)"), ShutdownOnEmptyDelay);
 			GetWorldTimerManager().SetTimer(EmptyServerTimerHandle, this, &ARHExampleGameMode::EmptyTimer, ShutdownOnEmptyDelay, false);
 		}
 	}
