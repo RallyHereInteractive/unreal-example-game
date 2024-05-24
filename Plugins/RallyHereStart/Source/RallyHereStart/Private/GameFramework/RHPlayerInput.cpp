@@ -2096,8 +2096,6 @@ bool URHPlayerInput::CanChangeToInputState(RH_INPUT_STATE NewState, bool bAxis, 
 	default:
 		return true;
 	}
-
-	return false;
 }
 
 void URHPlayerInput::UpdateInputState(RH_INPUT_STATE NewState, bool bAxis, float Delta)

@@ -1347,10 +1347,10 @@ bool URHSettingsDataFactory::UnpackageCaseSetting(const FString& InCaseId, const
 		{
 			OutCaseSet.CaseId = InCaseId;
 			OutCaseSet.V = InSettingData.V;
-			CaseSetObject->TryGetNumberField("config_set_id", OutCaseSet.ConfigSetId);
+			CaseSetObject->TryGetNumberField(TEXT("config_set_id"), OutCaseSet.ConfigSetId);
 			
 			const TSharedPtr<FJsonObject>* PropertiesData = nullptr;
-			if (CaseSetObject->TryGetObjectField("props", PropertiesData))
+			if (CaseSetObject->TryGetObjectField(TEXT("props"), PropertiesData))
 			{
 				if (const FJsonObject* PropertiesObject = PropertiesData->Get())
 				{
@@ -1363,15 +1363,15 @@ bool URHSettingsDataFactory::UnpackageCaseSetting(const FString& InCaseId, const
 							{
 								FRHSettingPropertyValue NewPropertyValue;
 
-								if (PropertyObject->TryGetNumberField("int_value", NewPropertyValue.IntVal))
+								if (PropertyObject->TryGetNumberField(TEXT("int_value"), NewPropertyValue.IntVal))
 								{
 									NewPropertyValue.bIsSet = true;
 								}
-								if (PropertyObject->TryGetStringField("string_value", NewPropertyValue.StringVal))
+								if (PropertyObject->TryGetStringField(TEXT("string_value"), NewPropertyValue.StringVal))
 								{
 									NewPropertyValue.bIsSet = true;
 								}
-								if (PropertyObject->TryGetNumberField("float_value", NewPropertyValue.FloatVal))
+								if (PropertyObject->TryGetNumberField(TEXT("float_value"), NewPropertyValue.FloatVal))
 								{
 									NewPropertyValue.bIsSet = true;
 								}
