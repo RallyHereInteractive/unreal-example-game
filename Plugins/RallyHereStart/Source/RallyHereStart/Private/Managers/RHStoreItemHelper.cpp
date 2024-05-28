@@ -416,8 +416,19 @@ void URHStoreItemHelper::SubmitFinalPurchase(TArray<URHStorePurchaseRequest*> Pu
 									NewPlayerOrderEntry->LootItem = LootItem;
 									NewPlayerOrderEntry->Quantity = PurchaseRequests[i]->Quantity;
 									NewPlayerOrderEntry->ExternalTransactionId = PurchaseRequests[i]->ExternalTransactionId;
+
+									// old price mechanism, only supports single currency, left for redundancy
+									PRAGMA_DISABLE_DEPRECATION_WARNINGS
 									NewPlayerOrderEntry->PriceItemId = PurchaseRequests[i]->CurrencyType->GetItemId();
 									NewPlayerOrderEntry->Price = PurchaseRequests[i]->PriceInUI / PurchaseRequests[i]->Quantity;
+									PRAGMA_ENABLE_DEPRECATION_WARNINGS
+
+									// new price mechanism, supports multiple currencies
+									FRHAPI_PurchasePriceCurrency PriceCurrency;
+									PriceCurrency.SetPriceItemId(PurchaseRequests[i]->CurrencyType->GetItemId());
+									PriceCurrency.SetPrice(PurchaseRequests[i]->PriceInUI / PurchaseRequests[i]->Quantity);
+									NewPlayerOrderEntry->Prices = {PriceCurrency};
+									
 									NewPlayerOrderEntry->CouponItemId = PurchaseRequests[i]->CouponId;
 
 									PlayerOrderEntries.Push(NewPlayerOrderEntry);
