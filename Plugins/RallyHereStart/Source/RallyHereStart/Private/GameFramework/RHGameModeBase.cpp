@@ -389,7 +389,7 @@ void ARHGameModeBase::HandleMatchHasEnded()
 		pMatchTracker->DoEndMatch(CalculateMatchCloseness());
 	}
 
-	// mark session as closed to prevent new joins
+	// mark session as NotJoinable to prevent new joins
 	auto* GameInstance = GetGameInstance();
 	if (GameInstance != nullptr)
 	{
@@ -399,13 +399,11 @@ void ARHGameModeBase::HandleMatchHasEnded()
 			auto GISession = GISS->GetSessionSubsystem();
 			if (GISession != nullptr && GISession->GetActiveSession() != nullptr)
 			{ 
-				/* This will mark the session to not be joinable.  Unfortunately, closed will cause a dedicated server to close itself out and recycle itself, we will need a new state to handle that
 				auto* RHSession = GISession->GetActiveSession();
 
 				FRHAPI_InstanceInfoUpdate InstanceInfo = RHSession->GetInstanceUpdateInfoDefaults();
-				InstanceInfo.SetJoinStatus(ERHAPI_InstanceJoinableStatus::Closed);
+				InstanceInfo.SetJoinStatus(ERHAPI_InstanceJoinableStatus::NotJoinable);
 				RHSession->UpdateInstanceInfo(InstanceInfo);
-				*/
 			}
 		}
 	}
