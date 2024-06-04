@@ -402,7 +402,7 @@ void ARHGameModeBase::HandleMatchHasEnded()
 				auto* RHSession = GISession->GetActiveSession();
 
 				FRHAPI_InstanceInfoUpdate InstanceInfo = RHSession->GetInstanceUpdateInfoDefaults();
-				InstanceInfo.SetJoinStatus(ERHAPI_InstanceJoinableStatus::NotJoinable);
+				InstanceInfo.SetJoinStatus(ERHAPI_InstanceJoinableStatus::Unjoinable);
 				RHSession->UpdateInstanceInfo(InstanceInfo);
 			}
 		}
