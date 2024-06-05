@@ -1,7 +1,7 @@
 
 {
 	"FileVersion": 3,
-	"EngineAssociation": "",
+	"EngineAssociation": "UE_5_3",
 	"Category": "",
 	"Description": "",
 	"Modules": [
