@@ -16,3 +16,6 @@ Platforms/
 # Ignore a plugin folder called RallyHere, as that may be a mapped version of the engine plugins
 Plugins/RallyHere/
 
+#ignore Rider files
+.idea/
+
