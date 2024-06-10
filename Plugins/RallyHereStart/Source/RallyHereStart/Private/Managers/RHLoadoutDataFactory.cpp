@@ -289,7 +289,7 @@ void URHLoadoutDataFactory::GetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo,
 		}
 	}
 
-	PlayerInfo->GetPlayerSettings("loadout", StaleThreshold, bForceRefresh, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnGetPlayerLoadoutSettingsResponse, PlayerInfo, Delegate));
+	PlayerInfo->GetPlayerSettings(TEXT("player_loadout"), StaleThreshold, bForceRefresh, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnGetPlayerLoadoutSettingsResponse, PlayerInfo, Delegate));
 }
 
 void URHLoadoutDataFactory::OnGetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, FRH_GetPlayerInfoLoadoutsBlock Delegate)
@@ -343,7 +343,7 @@ void URHLoadoutDataFactory::GetPlayerLoadoutSettingByLoadoutType(URH_PlayerInfo*
 		}
 	}
 
-	PlayerInfo->GetPlayerSettings("loadout", StaleThreshold, bForceRefresh, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnGetPlayerLoadoutSettingByLoadoutTypeResponse, PlayerInfo, LoadoutType, bCreateIfNeeded, Delegate));
+	PlayerInfo->GetPlayerSettings(TEXT("player_loadouts"), StaleThreshold, bForceRefresh, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnGetPlayerLoadoutSettingByLoadoutTypeResponse, PlayerInfo, LoadoutType, bCreateIfNeeded, Delegate));
 }
 
 void URHLoadoutDataFactory::OnGetPlayerLoadoutSettingByLoadoutTypeResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& Response, URH_PlayerInfo* PlayerInfo, ERHLoadoutTypes LoadoutType, bool bCreateIfNeeded, FRH_GetPlayerInfoLoadoutBlock Delegate)
@@ -419,18 +419,22 @@ void URHLoadoutDataFactory::SetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo,
 {
 	if (Loadouts.Num() > 0 && PlayerInfo != nullptr)
 	{
-		TMap<FString, FSettingData> SettingsContent;
+		TMap<FString, FRHAPI_SetSinglePlayerSettingRequest> SettingsContent;
 		if (PackagePlayerLoadouts(Loadouts, SettingsContent))
 		{
-			FRH_PlayerSettingsDataWrapper SettingsData;
-			SettingsData.Content = SettingsContent;
-			PlayerInfo->SetPlayerSettings("loadout", SettingsData, FRH_PlayerInfoSetPlayerSettingsDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnSetPlayerLoadoutSettingsResponse, PlayerInfo, Delegate));
+			static FString SettingTypeId = TEXT("player_loadout");
+			TWeakObjectPtr<URH_PlayerInfo> PlayerInfoWeak = PlayerInfo;
+			for (const auto& Setting : SettingsContent)
+			{
+				PlayerInfo->SetPlayerSetting(TEXT("player_loadout"), Setting.Key, Setting.Value, FRH_PlayerInfoSetPlayerSettingDelegate::CreateUObject(this, &URHLoadoutDataFactory::OnSetPlayerLoadoutSettingsResponse, PlayerInfoWeak, Delegate));
+			}
 		}
 	}
 }
 
-void URHLoadoutDataFactory::OnSetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, URH_PlayerInfo* PlayerInfo, FRH_SetPlayerInfoLoadoutsBlock Delegate)
+void URHLoadoutDataFactory::OnSetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, const FRH_ErrorInfo& ErrorInfo, TWeakObjectPtr<URH_PlayerInfo> PlayerInfoWeak, FRH_SetPlayerInfoLoadoutsBlock Delegate)
 {
+	auto PlayerInfo = PlayerInfoWeak.Get();
 	if (bSuccess && PlayerInfo != nullptr)
 	{
 		// Update local cache with Loadout data that was just pushed
@@ -506,7 +510,7 @@ bool URHLoadoutDataFactory::CreateLocalLoadout(URH_PlayerLoadout*& Loadout, ERHL
     return false;
 }
 
-bool URHLoadoutDataFactory::PackagePlayerLoadouts(const TArray<URH_PlayerLoadout*>& InLoadouts, TMap<FString, FSettingData>& OutSettingsContent)
+bool URHLoadoutDataFactory::PackagePlayerLoadouts(const TArray<URH_PlayerLoadout*>& InLoadouts, TMap<FString, FRHAPI_SetSinglePlayerSettingRequest>& OutSettingsContent)
 {
 	OutSettingsContent.Empty();
 
@@ -516,7 +520,7 @@ bool URHLoadoutDataFactory::PackagePlayerLoadouts(const TArray<URH_PlayerLoadout
 		{
 			if (InLoadout != nullptr)
 			{
-				FSettingData PackagedData;
+				FRHAPI_SetSinglePlayerSettingRequest PackagedData;
 				if (PackagePlayerLoadout(InLoadout, PackagedData))
 				{
 					OutSettingsContent.Add(InLoadout->GetLoadoutId(), PackagedData);
@@ -532,7 +536,7 @@ bool URHLoadoutDataFactory::PackagePlayerLoadouts(const TArray<URH_PlayerLoadout
 	return OutSettingsContent.Num() > 0;
 }
 
-bool URHLoadoutDataFactory::PackagePlayerLoadout(URH_PlayerLoadout* InLoadout, FSettingData& OutSettingData)
+bool URHLoadoutDataFactory::PackagePlayerLoadout(URH_PlayerLoadout* InLoadout, FRHAPI_SetSinglePlayerSettingRequest& OutSettingData)
 {
 	if (InLoadout == nullptr)
 	{
@@ -585,11 +589,10 @@ bool URHLoadoutDataFactory::PackagePlayerLoadout(URH_PlayerLoadout* InLoadout, F
 
 	OutSettingData.V = InLoadout->GetV();
 	OutSettingData.SetValue(FRHAPI_JsonValue(NewValueObject));
-	const auto NewValue = OutSettingData.GetValueOrNull();
-	return NewValue && NewValue->GetValue().IsValid();
+	return true;
 }
 
-bool URHLoadoutDataFactory::UnpackageLoadoutSettings(const TMap<FString, FSettingData>& InSettingsContent, FRHPlayerLoadoutsWrapper& OutLoadouts)
+bool URHLoadoutDataFactory::UnpackageLoadoutSettings(const TMap<FString, FRHAPI_SettingData>& InSettingsContent, FRHPlayerLoadoutsWrapper& OutLoadouts)
 {
 	OutLoadouts.LoadoutsById.Empty();
 
@@ -612,7 +615,7 @@ bool URHLoadoutDataFactory::UnpackageLoadoutSettings(const TMap<FString, FSettin
 	return OutLoadouts.LoadoutsById.Num() > 0;
 }
 
-bool URHLoadoutDataFactory::UnpackageLoadoutSetting(const FString& InLoadoutId, const FSettingData& InSettingData, URH_PlayerLoadout*& OutLoadout)
+bool URHLoadoutDataFactory::UnpackageLoadoutSetting(const FString& InLoadoutId, const FRHAPI_SettingData& InSettingData, URH_PlayerLoadout*& OutLoadout)
 {
 	const auto Value = InSettingData.GetValueOrNull();
 	if (Value == nullptr)

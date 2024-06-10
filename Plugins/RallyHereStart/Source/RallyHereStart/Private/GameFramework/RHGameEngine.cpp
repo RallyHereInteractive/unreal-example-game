@@ -29,7 +29,7 @@ void URHGameEngine::CreateRuntimeTelemetryCollector(UWorld* pWorld)
 {
 	FString SessionId = pWorld->URL.GetOption(RH_SESSION_PARAMETER_NAME, TEXT(""));
 	FString InstanceId = pWorld->URL.GetOption(RH_INSTANCE_PARAMETER_NAME, TEXT(""));
-	FString TelemetryId = (SessionId.Len() > 0 || InstanceId.Len() > 0) ? SessionId + TEXT("[") + InstanceId + TEXT("]") : TEXT("");
+	FString TelemetryId = (SessionId.Len() > 0 || InstanceId.Len() > 0) ? SessionId + TEXT("__") + InstanceId : TEXT("");
     if (ShouldCollectRuntimeTelemetry() && TelemetryId.Len() > 0)
     {
         // if we do not have a collecctor, or the old one was for a different instance, make a new one

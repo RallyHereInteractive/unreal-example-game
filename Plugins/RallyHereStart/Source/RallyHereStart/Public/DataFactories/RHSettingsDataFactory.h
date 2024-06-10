@@ -507,7 +507,7 @@ public:
 public:
     UFUNCTION(BlueprintCallable, Category = "Settings")
     void SaveSettings();
-	void OnSetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData);
+	void OnSetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, const FRH_ErrorInfo& ErrorInfo);
 
 	virtual bool GetSettingAsBool(FName Name, bool& OutBool) const override;
 	virtual bool GetSettingAsInt(FName Name, int32& OutInt) const override;
@@ -689,13 +689,11 @@ public:
 
 // Case Settings
 protected:
-	typedef FRHAPI_SettingData FSettingData;
+	bool PackageCaseSettings(const TMap<int32, FRHSettingConfigSet>& InCaseSets, TMap<FString, FRHAPI_SetSinglePlayerSettingRequest>& OutSettingsContent);
+	bool PackageCaseSetting(const FRHSettingConfigSet& InCaseSet, FRHAPI_SetSinglePlayerSettingRequest& OutSettingData);
 
-	bool PackageCaseSettings(const TMap<int32, FRHSettingConfigSet>& InCaseSets, TMap<FString, FSettingData>& OutSettingsContent);
-	bool PackageCaseSetting(const FRHSettingConfigSet& InCaseSet, FSettingData& OutSettingData);
-
-	bool UnpackageCaseSettings(const TMap<FString, FSettingData>& InSettingsContent, TArray<FRHSettingConfigSet>& OutCaseSets);
-	bool UnpackageCaseSetting(const FString& InCaseId, const FSettingData& InSettingData, FRHSettingConfigSet& OutCaseSet);
+	bool UnpackageCaseSettings(const TMap<FString, FRHAPI_SettingData>& InSettingsContent, TArray<FRHSettingConfigSet>& OutCaseSets);
+	bool UnpackageCaseSetting(const FString& InCaseId, const FRHAPI_SettingData& InSettingData, FRHSettingConfigSet& OutCaseSet);
 
 	bool FindCaseFromSetsById(const TArray<FRHSettingConfigSet>& InCaseSets, const int32& InConfigSetId, const int32& InV, TArray<FRHSettingConfigSet>& OutFoundCaseSets, bool bCreateIfNeeded);
 	bool FindCasePropertyFromSetsById(const TArray<FRHSettingConfigSet>& InCaseSets, const FString& InPropertyId, FRHSettingPropertyValue& OutFoundProperty);
