@@ -299,7 +299,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Loadout Data Factory", meta = (DisplayName = "Set Player Loadout Settings", AutoCreateRefTerm = "Delegate"))
 	void BLUEPRINT_SetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo, const TArray<URH_PlayerLoadout*>& Loadouts, const FRH_SetPlayerInfoLoadoutsDynamicDelegate& Delegate) { SetPlayerLoadoutSettings(PlayerInfo, Loadouts, Delegate); }
 	void SetPlayerLoadoutSettings(URH_PlayerInfo* PlayerInfo, const TArray<URH_PlayerLoadout*>& Loadouts, FRH_SetPlayerInfoLoadoutsBlock Delegate = FRH_SetPlayerInfoLoadoutsBlock());
-	void OnSetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, URH_PlayerInfo* PlayerInfo, FRH_SetPlayerInfoLoadoutsBlock Delegate);
+	void OnSetPlayerLoadoutSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, const FRH_ErrorInfo& ErrorInfo, TWeakObjectPtr<URH_PlayerInfo> PlayerInfo, FRH_SetPlayerInfoLoadoutsBlock Delegate);
 
 	UFUNCTION(BlueprintPure, Category = "Loadout Data Factory")
 	UPlatformInventoryItem* GetDefaultItemForLoadoutSlotType(const ERHLoadoutSlotTypes SlotType);
@@ -318,13 +318,11 @@ protected:
 * Loadout Settings
 */
 protected:
-	typedef FRHAPI_SettingData FSettingData;
+	bool PackagePlayerLoadouts(const TArray<URH_PlayerLoadout*>& InLoadouts, TMap<FString, FRHAPI_SetSinglePlayerSettingRequest>& OutSettingsContent);
+	bool PackagePlayerLoadout(URH_PlayerLoadout* InLoadout, FRHAPI_SetSinglePlayerSettingRequest& OutSettingData);
 
-	bool PackagePlayerLoadouts(const TArray<URH_PlayerLoadout*>& InLoadouts, TMap<FString, FSettingData>& OutSettingsContent);
-	bool PackagePlayerLoadout(URH_PlayerLoadout* InLoadout, FSettingData& OutSettingData);
-
-	bool UnpackageLoadoutSettings(const TMap<FString, FSettingData>& InSettingsContent, FRHPlayerLoadoutsWrapper& OutLoadouts);
-	bool UnpackageLoadoutSetting(const FString& InLoadoutId, const FSettingData& InSettingData, URH_PlayerLoadout*& OutLoadout);
+	bool UnpackageLoadoutSettings(const TMap<FString, FRHAPI_SettingData>& InSettingsContent, FRHPlayerLoadoutsWrapper& OutLoadouts);
+	bool UnpackageLoadoutSetting(const FString& InLoadoutId, const FRHAPI_SettingData& InSettingData, URH_PlayerLoadout*& OutLoadout);
 
 	TArray<URH_PlayerLoadout*> GetLoadoutsFromWrapper(const FRHPlayerLoadoutsWrapper& InWrapper);
 

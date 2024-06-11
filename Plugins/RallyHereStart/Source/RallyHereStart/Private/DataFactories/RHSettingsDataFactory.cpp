@@ -246,7 +246,7 @@ void URHSettingsDataFactory::GetSettingsFromPlayerAccount()
 
 		if (URH_PlayerInfo* LocalPlayerInfo = MyHud->GetLocalPlayerInfo())
 		{
-			LocalPlayerInfo->GetPlayerSettings("case", FTimespan(), true, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHSettingsDataFactory::OnGetPlayerCaseSetSettingsResponse));
+			LocalPlayerInfo->GetPlayerSettings("player_settings", FTimespan(), true, FRH_PlayerInfoGetPlayerSettingsDelegate::CreateUObject(this, &URHSettingsDataFactory::OnGetPlayerCaseSetSettingsResponse));
 		}
 	}
     OnSettingsReceivedFromPlayerAccount.Broadcast();
@@ -458,18 +458,20 @@ void URHSettingsDataFactory::SaveSettings()
 	{
 		if (URH_PlayerInfo* LocalPlayerInfo = MyHud->GetLocalPlayerInfo())
 		{
-			TMap<FString, FSettingData> OutgoingSettingsContent;
+			TMap<FString, FRHAPI_SetSinglePlayerSettingRequest> OutgoingSettingsContent;
 			if (PackageCaseSettings(StoredCaseSets, OutgoingSettingsContent))
 			{
-				FRH_PlayerSettingsDataWrapper OutgoingData;
-				OutgoingData.Content = OutgoingSettingsContent;
-				LocalPlayerInfo->SetPlayerSettings("case", OutgoingData, FRH_PlayerInfoSetPlayerSettingsDelegate::CreateUObject(this, &URHSettingsDataFactory::OnSetPlayerCaseSetSettingsResponse));
+				static FString SettingTypeId = TEXT("player_settings");
+				for (const auto& Setting : OutgoingSettingsContent)
+				{
+					LocalPlayerInfo->SetPlayerSetting(SettingTypeId, Setting.Key, Setting.Value, FRH_PlayerInfoSetPlayerSettingDelegate::CreateUObject(this, &URHSettingsDataFactory::OnSetPlayerCaseSetSettingsResponse));
+				}
 			}
 		}
 	}
 }
 
-void URHSettingsDataFactory::OnSetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData)
+void URHSettingsDataFactory::OnSetPlayerCaseSetSettingsResponse(bool bSuccess, const FRH_PlayerSettingsDataWrapper& ResponseData, const FRH_ErrorInfo& ErrorInfo)
 {
 	if (bSuccess)
 	{
@@ -1238,7 +1240,7 @@ bool URHSettingsDataFactory::SetSelectedRegion(const FString& RegionId)
     return false;
 }
 
-bool URHSettingsDataFactory::PackageCaseSettings(const TMap<int32, FRHSettingConfigSet>& InCaseSets, TMap<FString, FSettingData>& OutSettingsContent)
+bool URHSettingsDataFactory::PackageCaseSettings(const TMap<int32, FRHSettingConfigSet>& InCaseSets, TMap<FString, FRHAPI_SetSinglePlayerSettingRequest>& OutSettingsContent)
 {
 	OutSettingsContent.Empty();
 
@@ -1246,10 +1248,10 @@ bool URHSettingsDataFactory::PackageCaseSettings(const TMap<int32, FRHSettingCon
 	{
 		for (auto pair : InCaseSets)
 		{
-			FSettingData PackagedData;
+			FRHAPI_SetSinglePlayerSettingRequest PackagedData;
 			if (PackageCaseSetting(pair.Value, PackagedData))
 			{
-				OutSettingsContent.Add(pair.Value.CaseId, PackagedData);
+				OutSettingsContent.Add(FString::FromInt(pair.Value.ConfigSetId), PackagedData);
 			}
 			else
 			{
@@ -1261,7 +1263,7 @@ bool URHSettingsDataFactory::PackageCaseSettings(const TMap<int32, FRHSettingCon
 	return OutSettingsContent.Num() > 0;
 }
 
-bool URHSettingsDataFactory::PackageCaseSetting(const FRHSettingConfigSet& InCaseSet, FSettingData& OutSettingData)
+bool URHSettingsDataFactory::PackageCaseSetting(const FRHSettingConfigSet& InCaseSet, FRHAPI_SetSinglePlayerSettingRequest& OutSettingData)
 {
 	TSharedPtr<FJsonObject> NewObject = MakeShared<FJsonObject>();
 	TSharedPtr<FJsonValueObject> NewValueObject = MakeShared<FJsonValueObject>(NewObject);
@@ -1305,11 +1307,10 @@ bool URHSettingsDataFactory::PackageCaseSetting(const FRHSettingConfigSet& InCas
 
 	OutSettingData.V = InCaseSet.V;
 	OutSettingData.SetValue(FRHAPI_JsonValue(NewValueObject));
-	const auto NewValue = OutSettingData.GetValueOrNull();
-	return NewValue && NewValue->GetValue().IsValid();
+	return true;
 }
 
-bool URHSettingsDataFactory::UnpackageCaseSettings(const TMap<FString, FSettingData>& InSettingsContent, TArray<FRHSettingConfigSet>& OutCaseSets)
+bool URHSettingsDataFactory::UnpackageCaseSettings(const TMap<FString, FRHAPI_SettingData>& InSettingsContent, TArray<FRHSettingConfigSet>& OutCaseSets)
 {
 	OutCaseSets.Empty();
 
@@ -1332,7 +1333,7 @@ bool URHSettingsDataFactory::UnpackageCaseSettings(const TMap<FString, FSettingD
 	return OutCaseSets.Num() > 0;
 }
 
-bool URHSettingsDataFactory::UnpackageCaseSetting(const FString& InCaseId, const FSettingData& InSettingData, FRHSettingConfigSet& OutCaseSet)
+bool URHSettingsDataFactory::UnpackageCaseSetting(const FString& InCaseId, const FRHAPI_SettingData& InSettingData, FRHSettingConfigSet& OutCaseSet)
 {
 	const auto Value = InSettingData.GetValueOrNull();
 	if (Value == nullptr)
