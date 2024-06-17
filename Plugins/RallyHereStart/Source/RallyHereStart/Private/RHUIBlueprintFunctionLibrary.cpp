@@ -443,7 +443,8 @@ ERHAPI_Platform URHUIBlueprintFunctionLibrary::GetLoggedInPlatformId(ARHHUDCommo
 	auto LPSS = pHUD != nullptr ? pHUD->GetLocalPlayerSubsystem() : nullptr;
 	if (LPSS != nullptr)
 	{
-		return LPSS->GetLoggedInPlatform();
+		const auto Platform = LPSS->GetLoggedInPlatform();
+		return Platform.Get(ERHAPI_Platform::Anon);
 	}
 
 	return ERHAPI_Platform::Anon;
@@ -676,24 +677,28 @@ ERHPlayerOnlineStatus URHUIBlueprintFunctionLibrary::GetFriendOnlineStatus(const
 				}
 				else if (LocalPlayerSS)
 				{
-					if (const URH_PlatformFriend* PortalFriend = Friend->GetPlatformFriend(LocalPlayerSS->GetLoggedInPlatform()))
+					const auto LoggedInPlatform = LocalPlayerSS->GetLoggedInPlatform();
+					if (LoggedInPlatform.IsSet())
 					{
-						if (PortalFriend->IsFriend())
+						if (const URH_PlatformFriend* PortalFriend = Friend->GetPlatformFriend(LoggedInPlatform.GetValue()))
 						{
-							if (PortalFriend->IsPlayingThisGame())
+							if (PortalFriend->IsFriend())
 							{
-								return ERHPlayerOnlineStatus::FGS_InGame;
-							}
-							else if (PortalFriend->IsOnline())
-							{
-								return ERHPlayerOnlineStatus::FGS_Online;
+								if (PortalFriend->IsPlayingThisGame())
+								{
+									return ERHPlayerOnlineStatus::FGS_InGame;
+								}
+								else if (PortalFriend->IsOnline())
+								{
+									return ERHPlayerOnlineStatus::FGS_Online;
+								}
 							}
 						}
 					}
 
 					if (const URH_PlayerPlatformInfo* PlayerPlatformInfo = PlayerInfoSubsystem->GetPlayerPlatformInfo(Friend->GetPlayerAndPlatformInfo().PlayerPlatformId))
 					{
-						return PlayerPlatformInfo->GetPlatform() == LocalPlayerSS->GetLoggedInPlatform() ? ERHPlayerOnlineStatus::FGS_Online : ERHPlayerOnlineStatus::FGS_Offline;
+						return LoggedInPlatform.IsSet() && PlayerPlatformInfo->GetPlatform() == LoggedInPlatform.GetValue() ? ERHPlayerOnlineStatus::FGS_Online : ERHPlayerOnlineStatus::FGS_Offline;
 					}
 				}
 			}

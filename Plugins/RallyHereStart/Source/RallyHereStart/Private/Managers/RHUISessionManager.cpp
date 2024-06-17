@@ -91,30 +91,44 @@ void URHUISessionManager::OnLoginPlayerChanged(ULocalPlayer* LocalPlayer)
 
 		if (PlayerInfo != nullptr)
 		{
-			PlayerInfo->GetLinkedPlatformInfo(FTimespan(), false, FRH_PlayerInfoGetPlatformsDelegate::CreateWeakLambda(this, [this, RHSS, PlayerInfo](bool bSuccess, const TArray<URH_PlayerPlatformInfo*>& Platforms)
+			TWeakObjectPtr<URH_LocalPlayerSubsystem> RHSSWeak = RHSS;
+			TWeakObjectPtr<URH_PlayerInfo> PlayerInfoWeak = PlayerInfo;
+			PlayerInfo->GetLinkedPlatformInfo(FTimespan(), false, FRH_PlayerInfoGetPlatformsDelegate::CreateWeakLambda(this, [this, RHSSWeak, PlayerInfoWeak](bool bSuccess, const TArray<URH_PlayerPlatformInfo*>& Platforms)
 				{
-					for (const auto& Platform : Platforms)
+					if (!RHSSWeak.IsValid() || !PlayerInfoWeak.IsValid())
 					{
-						if (Platform != nullptr && Platform->GetPlatform() == RHSS->GetLoggedInPlatform())
+						return;
+					}
+				
+					auto RHSS = RHSSWeak.Get();
+					auto PlayerInfo = PlayerInfoWeak.Get();
+				
+					const auto LoggedInPlatform = RHSS->GetLoggedInPlatform();
+					if (LoggedInPlatform.IsSet())
+					{
+						for (const auto& Platform : Platforms)
 						{
-							const auto IdentityInterface = Online::GetIdentityInterface();
-							TSharedPtr<const FUniqueNetId> PlayerUniqueNetId = IdentityInterface->CreateUniquePlayerId(Platform->GetPlatformUserId());
-
-							if (PlayerUniqueNetId.IsValid())
+							if (Platform != nullptr && Platform->GetPlatform() == LoggedInPlatform.GetValue())
 							{
-								if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
+								const auto IdentityInterface = Online::GetIdentityInterface();
+								TSharedPtr<const FUniqueNetId> PlayerUniqueNetId = IdentityInterface->CreateUniquePlayerId(Platform->GetPlatformUserId());
+
+								if (PlayerUniqueNetId.IsValid())
 								{
-									IOnlineAchievementsPtr Achievements = OSS->GetAchievementsInterface();
-									if (Achievements.IsValid())
+									if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
 									{
-										FOnQueryAchievementsCompleteDelegate QueryAchievementsDel;
-										FOnQueryAchievementsCompleteDelegate QueryAchievementDescriptionsDel;
+										IOnlineAchievementsPtr Achievements = OSS->GetAchievementsInterface();
+										if (Achievements.IsValid())
+										{
+											FOnQueryAchievementsCompleteDelegate QueryAchievementsDel;
+											FOnQueryAchievementsCompleteDelegate QueryAchievementDescriptionsDel;
 
-										QueryAchievementsDel.BindUObject(this, &URHUISessionManager::OnQueryAchievementsComplete, PlayerInfo);
-										QueryAchievementDescriptionsDel.BindUObject(this, &URHUISessionManager::OnQueryAchievementDescriptionsComplete, PlayerInfo);
+											QueryAchievementsDel.BindUObject(this, &URHUISessionManager::OnQueryAchievementsComplete, PlayerInfo);
+											QueryAchievementDescriptionsDel.BindUObject(this, &URHUISessionManager::OnQueryAchievementDescriptionsComplete, PlayerInfo);
 
-										Achievements->QueryAchievements(*PlayerUniqueNetId.Get(), QueryAchievementsDel);
-										Achievements->QueryAchievementDescriptions(*PlayerUniqueNetId.Get(), QueryAchievementDescriptionsDel);
+											Achievements->QueryAchievements(*PlayerUniqueNetId.Get(), QueryAchievementsDel);
+											Achievements->QueryAchievementDescriptions(*PlayerUniqueNetId.Get(), QueryAchievementDescriptionsDel);
+										}
 									}
 								}
 							}
