@@ -25,41 +25,11 @@ ARHGameModeBase::ARHGameModeBase(const FObjectInitializer& ObjectInitializer)
 {
 	PlayerControllerClass = ARHPlayerController::StaticClass();
 
-	MatchSpindownDelay = 60;
-	MatchEndReturnToLobbyDelay = 10;
-
 	InactivePlayerStateLifeSpan = 0;    // default to preserving playerstates indefinitely
-
-	bMatchClosedByCore = false;
 
 	bGlobalDisableAIBackfill = false;
 	bAllowAIBackfill = false;
 	bHasPerformedInitialAIBackfill = false;
-}
-
-void ARHGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
-{
-	Super::InitGame(MapName, Options, ErrorMessage);
-}
-
-void ARHGameModeBase::InitGameState()
-{
-	Super::InitGameState();
-}
-
-void ARHGameModeBase::PostSeamlessTravel()
-{
-	Super::PostSeamlessTravel();
-}
-
-void ARHGameModeBase::BeginDestroy()
-{
-	Super::BeginDestroy();
-
-	if (GEngine)
-	{
-		GEngine->OnNetworkFailure().RemoveAll(this);
-	}
 }
 
 // BEGIN - PS5 Match Handling
@@ -367,99 +337,10 @@ void ARHGameModeBase::HandleMatchHasStarted()
 void ARHGameModeBase::HandleMatchHasEnded()
 {
 	Super::HandleMatchHasEnded();
-
-	AllPlayersEndGame();
-
-	if (MatchEndReturnToLobbyDelay > 0.f)
-	{
-		// start timer for return to lobby
-		GetWorldTimerManager().SetTimer(
-			ReturnToLobbyTimer,
-			this,
-			&ARHGameModeBase::AllPlayersReturnToLobby,
-			MatchEndReturnToLobbyDelay);
-	}
-	else
-	{
-		AllPlayersReturnToLobby();
-	}
-
+	
 	if (UPlayerExp_MatchTracker* pMatchTracker = UPlayerExperienceGlobals::Get().GetMatchTracker(GetWorld()))
 	{
 		pMatchTracker->DoEndMatch(CalculateMatchCloseness());
-	}
-
-	// mark session as NotJoinable to prevent new joins
-	auto* GameInstance = GetGameInstance();
-	if (GameInstance != nullptr)
-	{
-		auto* GISS = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>();
-		if (GISS != nullptr)
-		{
-			auto GISession = GISS->GetSessionSubsystem();
-			if (GISession != nullptr && GISession->GetActiveSession() != nullptr)
-			{ 
-				auto* RHSession = GISession->GetActiveSession();
-
-				FRHAPI_InstanceInfoUpdate InstanceInfo = RHSession->GetInstanceUpdateInfoDefaults();
-				InstanceInfo.SetJoinStatus(ERHAPI_InstanceJoinableStatus::Unjoinable);
-				RHSession->UpdateInstanceInfo(InstanceInfo);
-			}
-		}
-	}
-
-	// start timer for instance shutdown (network loop)
-	if (MatchSpindownDelay > 0.f)
-	{
-		GetWorldTimerManager().SetTimer(
-			ShutdownTimer,
-			this,
-			&ARHGameModeBase::FinalizeMatchEnded,
-			MatchSpindownDelay);
-	}
-	else
-	{
-		FinalizeMatchEnded();
-	}
-}
-
-void ARHGameModeBase::HandleMatchAborted()
-{
-	Super::HandleMatchAborted();
-
-	// mark session as closed to prevent new joins
-	auto* GameInstance = GetGameInstance();
-	if (GameInstance != nullptr)
-	{
-		auto* GISS = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>();
-		if (GISS != nullptr)
-		{
-			auto GISession = GISS->GetSessionSubsystem();
-			if (GISession != nullptr && GISession->GetActiveSession() != nullptr)
-			{
-				/* This will mark the session to not be joinable.  Unfortunately, closed will cause a dedicated server to close itself out and recycle itself, we will need a new state to handle that
-				auto* RHSession = GISession->GetActiveSession();
-
-				FRHAPI_InstanceInfoUpdate InstanceInfo = RHSession->GetInstanceUpdateInfoDefaults();
-				InstanceInfo.SetJoinStatus(ERHAPI_InstanceJoinableStatus::Closed);
-				RHSession->UpdateInstanceInfo(InstanceInfo);
-				*/
-			}
-		}
-	}
-
-	// start timer for instance shutdown (network loop)
-	if (MatchSpindownDelay > 0.f)
-	{
-		GetWorldTimerManager().SetTimer(
-			ShutdownTimer,
-			this,
-			&ARHGameModeBase::FinalizeMatchEnded,
-			MatchSpindownDelay);
-	}
-	else
-	{
-		FinalizeMatchEnded();
 	}
 }
 
@@ -993,96 +874,4 @@ void ARHGameModeBase::CloseConflictingNetConnections(URH_IpConnection* InNetConn
 	}
 }
 
-void ARHGameModeBase::AllPlayersEndGame()
-{
-	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-	{
-		APlayerController* PC = Iterator->Get();
-		if (PC)
-		{
-			PC->GameHasEnded();
-		}
-	}
-}
 
-void ARHGameModeBase::AllPlayersReturnToLobby()
-{
-	GetWorldTimerManager().ClearTimer(ReturnToLobbyTimer);
-
-	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-	{
-		APlayerController* PC = Iterator->Get();
-		if (PC)
-		{
-			PC->ClientReturnToMainMenuWithTextReason(FText::AsCultureInvariant(TEXT("Game Has Ended")));
-		}
-	}
-}
-
-void ARHGameModeBase::FinalizeMatchEnded()
-{
-	// make sure everyone is out
-	AllPlayersReturnToLobby();
-
-	GetWorldTimerManager().ClearTimer(ShutdownTimer);
-
-	auto* GameInstance = GetGameInstance();
-	if (GameInstance != nullptr)
-	{
-		auto* GISS = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>();
-		if (GISS != nullptr)
-		{
-			auto GISession = GISS->GetSessionSubsystem();
-			if (GISession != nullptr && GISession->GetActiveSession() != nullptr)
-			{
-				auto* Session = GISession->GetActiveSession();
-
-				// start leaving the instance, this should mark the instance as closed, which should start a recycle for a dedicated server
-				GISession->StartLeaveInstanceFlow(false, false);
-			}
-		}
-	}
-
-	// start timer for instance shutdown fallback
-	GetWorldTimerManager().SetTimer(
-		ShutdownTimer,
-		this,
-		&ARHGameModeBase::FinalShutdown,
-		5.0f);
-}
-
-// It's the fi-nal shut-down!
-void ARHGameModeBase::FinalShutdown()
-{
-	// if we have reached this point where the gamemode is still active, ending the instance either did not succeed quickly, or failed, in which case we need to use a backup routine
-	if (IsRunningDedicatedServer())
-	{
-		// if running a dedicated server, shutdown.  This should go through normal instance shutdown-and-recycle logic.
-		RequestEngineExit(TEXT("RHGamemode FinalShutdown"));
-	}
-	else
-	{
-		// for non dedicated servers, run the leave flow if we can
-		bool bHandledViaLeaveFlow = false;
-		auto* GameInstance = GetGameInstance();
-		if (GameInstance != nullptr)
-		{
-			auto* GISS = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>();
-			if (GISS != nullptr)
-			{
-				auto GISession = GISS->GetSessionSubsystem();
-				if (GISession != nullptr && GISession->GetActiveSession() != nullptr)
-				{
-					GISession->StartLeaveInstanceFlow();
-					bHandledViaLeaveFlow = true;
-				}
-			}
-		}
-
-		// if the leave flow could not be triggered, run the engine disconnect handler
-		if (!bHandledViaLeaveFlow)
-		{
-			GEngine->HandleDisconnect(GetWorld(), GetWorld()->GetNetDriver());
-		}
-	}
-}
