@@ -1038,7 +1038,7 @@ void ARHGameModeBase::FinalizeMatchEnded()
 				auto* Session = GISession->GetActiveSession();
 
 				// start leaving the instance, this should mark the instance as closed, which should start a recycle for a dedicated server
-				GISession->StartLeaveInstanceFlow(false, false);
+				GISession->SyncToSession(nullptr);
 			}
 		}
 	}
@@ -1073,7 +1073,7 @@ void ARHGameModeBase::FinalShutdown()
 				auto GISession = GISS->GetSessionSubsystem();
 				if (GISession != nullptr && GISession->GetActiveSession() != nullptr)
 				{
-					GISession->StartLeaveInstanceFlow();
+					GISession->SyncToSession(nullptr);
 					bHandledViaLeaveFlow = true;
 				}
 			}
