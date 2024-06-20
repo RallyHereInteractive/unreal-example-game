@@ -1,5 +1,5 @@
 #pragma once
-#include "GameFramework/GameMode.h"
+#include "RH_GameMode.h"
 
 #include "RHGameModeBase.generated.h"
 
@@ -61,17 +61,11 @@ public:
 };
 
 UCLASS(config=Game)
-class RALLYHERESTART_API ARHGameModeBase : public AGameMode
+class RALLYHERESTART_API ARHGameModeBase : public ARH_GameMode
 {
 	GENERATED_UCLASS_BODY()
 
 public:
-	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
-	virtual void InitGameState() override;
-	virtual void PostSeamlessTravel() override;
-
-	virtual void BeginDestroy() override;
-
 	virtual void StartMatch() override;
 
 	virtual void GameWelcomePlayer(UNetConnection* Connection, FString& RedirectURL) override;
@@ -135,23 +129,6 @@ protected:
     virtual void HandleMatchIsWaitingToStart() override;
     virtual void HandleMatchHasStarted() override;
     virtual void HandleMatchHasEnded() override;
-    virtual void HandleMatchAborted() override;
-
-	 /** This is where you should notify all players that you have ended the game, and send potential match results */
-    virtual void AllPlayersEndGame();
-    virtual void AllPlayersReturnToLobby();
-
-    UFUNCTION()
-    virtual void FinalizeMatchEnded();
-    UFUNCTION()
-    void FinalShutdown();
-
-    FTimerHandle ShutdownTimer;
-    FTimerHandle ReturnToLobbyTimer;
-    UPROPERTY(config)
-    float MatchEndReturnToLobbyDelay;
-    UPROPERTY(config)
-    float MatchSpindownDelay;
 
     // BEGIN - Sony Match Handling
     UPROPERTY(config, EditDefaultsOnly, Category=Playstation)
@@ -170,8 +147,6 @@ protected:
     TArray<FUniqueNetIdRepl> SonyIneligibleMatchOwners;
 
     FTimerHandle SonyCheckTimeoutHandle;
-
-    bool bMatchClosedByCore;
 	 
 public:
 	 void HandleMatchIdUpdateSony(const FUniqueNetIdRepl& InRepId, const FString& MatchId);
