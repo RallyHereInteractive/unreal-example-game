@@ -33,3 +33,14 @@ protected:
 	UPROPERTY()
 	class URHExampleStatsMgr* StatsMgr;
 };
+
+UCLASS(MinimalAPI, Config=Game, hideCategories=(HUD))
+class ARHExampleGameModePersistent : public ARHGameModeBase
+{
+	GENERATED_BODY()
+
+public:
+	ARHExampleGameModePersistent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+	virtual void NotifySoftStopRequested();
+};
