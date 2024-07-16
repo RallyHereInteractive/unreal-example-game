@@ -144,3 +144,32 @@ void ARHExampleGameMode::HandleMatchAborted()
 
 	Super::HandleMatchAborted();
 }
+
+ARHExampleGameModePersistent::ARHExampleGameModePersistent(const FObjectInitializer& ObjectInitializer /*= FObjectInitializer::Get()*/)
+	: Super(ObjectInitializer)
+{
+	PlayerControllerClass = ARHPlayerController::StaticClass();
+	
+	ShutdownOnEmptyDelay = 0;
+}
+
+void ARHExampleGameModePersistent::NotifySoftStopRequested()
+{
+	// This is a persistent game mode, so we need to use the soft stop request as a signal to shut down the server
+	// if empty timer goes off, end the match
+	UE_LOG(LogRallyHereIntegration, Warning, TEXT("NotifySoftStopRequested triggered, ending match"));
+	if (!HasMatchStarted())
+	{
+		// if the match hasn't started yet, abort it
+		AbortMatch();
+	}
+	else if (!HasMatchEnded())
+	{
+		// if the match has started and not ended, end it
+		EndMatch();
+	}
+	else
+	{
+		// match has already ended and should already have shutdown logic running
+	}
+}
