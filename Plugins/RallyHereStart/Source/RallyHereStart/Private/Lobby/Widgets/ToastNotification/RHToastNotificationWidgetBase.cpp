@@ -151,19 +151,19 @@ void URHToastNotificationWidgetBase::OnFriendUpdated(URH_RHFriendAndPlatformFrie
 
 				switch (UpdatedFriend->GetStatus())
 				{
-				case FriendshipStatus::RH_FriendRequestSent:
+				case ERHAPI_FriendshipStatus::FriendRequestSent:
 					ToastCategory = EToastCategory::ETOAST_FRIEND;
 					ToastMessage = NSLOCTEXT("RHFriendlist", "AddSuccessMsg", "Friend request sent to {0}");
 					break;
-				case FriendshipStatus::RH_FriendRequestPending:
+				case ERHAPI_FriendshipStatus::FriendRequestPending:
 					ToastCategory = EToastCategory::ETOAST_FRIEND;
 					ToastMessage = NSLOCTEXT("RHFriendlist", "ReceiveRequest", "You have received a friend request from {0}");
 					break;
-				case FriendshipStatus::RH_FriendRequestDeclinedByOther:
+				case ERHAPI_FriendshipStatus::FriendRequestDeclinedByOther:
 					ToastCategory = EToastCategory::ETOAST_ERROR;
 					ToastMessage = NSLOCTEXT("RHFriendlist", "FriendRejected", "{0} declined your friend invite.");
 					break;
-				case FriendshipStatus::RH_Friends:
+				case ERHAPI_FriendshipStatus::Friends:
 					ToastCategory = EToastCategory::ETOAST_FRIEND;
 					ToastMessage = NSLOCTEXT("RHFriendlist", "FriendAdded", "You are now friends with {0}.");
 					break;
