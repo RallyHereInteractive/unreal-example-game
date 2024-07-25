@@ -172,6 +172,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 	URH_JoinedSession* ActiveSession = nullptr;
 	UGameInstance* GameInstance = nullptr;
 	URH_GameInstanceSubsystem* GISubsystem = nullptr;
+	URH_GameInstanceSessionSubsystem* GISessionSubsystem = nullptr;
 
 	if (GetWorld() != nullptr)
 	{
@@ -182,7 +183,11 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 			GISubsystem = GameInstance->GetSubsystem<URH_GameInstanceSubsystem>();
 			if (GISubsystem != nullptr)
 			{
-				ActiveSession = GISubsystem->GetSessionSubsystem()->GetActiveSession();
+				GISessionSubsystem = GISubsystem->GetSessionSubsystem();
+				if (GISessionSubsystem != nullptr)
+				{
+					ActiveSession = GISessionSubsystem->GetActiveSession();
+				}
 				PlayerInfoSubsystem = GISubsystem->GetPlayerInfoSubsystem();
 			}
 		}
@@ -308,11 +313,12 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 	}
 
 	// record the match history data
-	if (GISubsystem != nullptr)
+	if (GISubsystem != nullptr && GISessionSubsystem != nullptr)
 	{
 		// assume we are using automatic match updates, which will keep track of players entering and leaving the match, and has an active match id
 		auto MatchSubsystem = GISubsystem->GetMatchSubsystem();
-		if (MatchSubsystem != nullptr && MatchSubsystem->HasActiveMatchId())
+		const auto MatchId = GISessionSubsystem->GetActiveMatchId();
+		if (MatchSubsystem != nullptr && !MatchId.IsEmpty())
 		{
 			// update the match player data (individual calls to patch the data)
 			for (auto Tracker : m_StatsTrackers)
@@ -329,7 +335,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 				
 				//MatchPlayerRequest.SetCustomData(CustomData);
 
-				MatchSubsystem->UpdateMatchPlayer(MatchSubsystem->GetActiveMatchId(), PlayerUuid, MatchPlayerRequest);
+				MatchSubsystem->UpdateMatchPlayer(MatchId, PlayerUuid, MatchPlayerRequest);
 			}
 
 			// update the match data (single call to patch the data)
@@ -344,7 +350,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 
 				// calculate the duration of the match if we can
 				FRHAPI_MatchWithPlayers ExistingMatch;
-				if (MatchSubsystem->GetMatch(MatchSubsystem->GetActiveMatchId(), ExistingMatch))
+				if (MatchSubsystem->GetMatch(MatchId, ExistingMatch))
 				{
 					if (auto StartTime = ExistingMatch.GetStartTimestampOrNull())
 					{
@@ -354,7 +360,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 
 				//MatchRequest.SetCustomData(CustomData);
 
-				MatchSubsystem->UpdateMatch(MatchSubsystem->GetActiveMatchId(), MatchRequest);
+				MatchSubsystem->UpdateMatch(MatchId, MatchRequest);
 			}
 		}
 	}
