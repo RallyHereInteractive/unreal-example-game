@@ -617,14 +617,10 @@ bool URHLoadoutDataFactory::UnpackageLoadoutSettings(const TMap<FString, FRHAPI_
 
 bool URHLoadoutDataFactory::UnpackageLoadoutSetting(const FString& InLoadoutId, const FRHAPI_SettingData& InSettingData, URH_PlayerLoadout*& OutLoadout)
 {
-	const auto Value = InSettingData.GetValueOrNull();
-	if (Value == nullptr)
-	{
-		return false;
-	}
+	const auto Value = InSettingData.GetValue();
 	
 	const TSharedPtr<FJsonObject>* LoadoutData = nullptr;
-	if (Value->GetValue().Get()->TryGetObject(LoadoutData))
+	if (Value.GetValue().Get()->TryGetObject(LoadoutData))
 	{
 		if (const FJsonObject* LoadoutObject = LoadoutData->Get())
 		{

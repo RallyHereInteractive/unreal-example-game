@@ -1335,14 +1335,10 @@ bool URHSettingsDataFactory::UnpackageCaseSettings(const TMap<FString, FRHAPI_Se
 
 bool URHSettingsDataFactory::UnpackageCaseSetting(const FString& InCaseId, const FRHAPI_SettingData& InSettingData, FRHSettingConfigSet& OutCaseSet)
 {
-	const auto Value = InSettingData.GetValueOrNull();
-	if (Value == nullptr)
-	{
-		return false;
-	}
+	const auto Value = InSettingData.GetValue();
 	
 	const TSharedPtr<FJsonObject>* CaseSetData = nullptr;
-	if (Value->GetValue().Get()->TryGetObject(CaseSetData))
+	if (Value.GetValue().Get()->TryGetObject(CaseSetData))
 	{
 		if (const FJsonObject* CaseSetObject = CaseSetData->Get())
 		{
