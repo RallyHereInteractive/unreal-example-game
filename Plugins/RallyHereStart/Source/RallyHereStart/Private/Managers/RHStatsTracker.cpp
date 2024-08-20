@@ -354,7 +354,7 @@ void URHStatsMgr::FinishStats(class ARHGameModeBase* pGameMode)
 				{
 					if (auto StartTime = ExistingMatch.GetStartTimestampOrNull())
 					{
-						MatchRequest.SetDurationSeconds((*StartTime - MatchRequest.GetEndTimestamp()).GetTotalSeconds());
+						MatchRequest.SetDurationSeconds((MatchRequest.GetEndTimestamp() - *StartTime).GetTotalSeconds());
 					}
 				}
 
