@@ -22,7 +22,8 @@ protected:
     virtual void OnPostLoadMapWithWorld(UWorld* pWorld);
 
 private:
-    bool ShouldCollectRuntimeTelemetry() { return (IsRunningDedicatedServer() || IsRunningGame()); }
+    //bool ShouldCollectRuntimeTelemetry() { return (IsRunningDedicatedServer() || IsRunningGame()); }
+	bool ShouldCollectRuntimeTelemetry() { return false; }
     virtual void CreateRuntimeTelemetryCollector(class UWorld* pWorld);
 
     // stats collector with hooks to send stats to DB/file for use by operations
