@@ -46,13 +46,20 @@ void URHUISessionManager::OnLoginPlayerChanged(ULocalPlayer* LocalPlayer)
 		}
 
 		if (PlayerInfo != nullptr)
-		{
+		{		
 			if (URH_PlayerInventory* PlayerInventory = PlayerInfo->GetPlayerInventory())
 			{
-				PlayerInventory->GetInventory(TArray<int32>(), FRH_OnInventoryUpdateDelegate::CreateWeakLambda(this, [this, PlayerInfo](bool bSuccess)
+				PlayerInventory->OnInventoryCacheUpdated.AddWeakLambda(this, [this](const TArray<int32>& Items, URH_PlayerInfo* PlayerInfo)
 					{
-						if (bSuccess)
+						if (PlayerInfo != nullptr)
 						{
+							// unbind the delegate
+							auto Inventory = PlayerInfo->GetPlayerInventory();
+							if (Inventory != nullptr)
+							{
+								Inventory->OnInventoryCacheUpdated.RemoveAll(this);
+							}
+							
 							if (URHUISessionData* SessionData = SessionDataPerPlayer.FindRef(PlayerInfo))
 							{
 								SessionData->bHasFullPlayerInventory = true;
@@ -68,18 +75,18 @@ void URHUISessionManager::OnLoginPlayerChanged(ULocalPlayer* LocalPlayer)
 
 									if (VendorIds.Num())
 									{
-										StoreItemHelper->RequestVendorData(VendorIds, FRH_CatalogCallDelegate::CreateLambda([this, PlayerInfo](bool bSuccess)
+										StoreItemHelper->RequestVendorData(VendorIds, FRH_CatalogCallDelegate::CreateLambda([this, WeakPlayerInfo = MakeWeakObjectPtr(PlayerInfo)](bool bSuccess)
 											{
-												if (PlayerInfo != nullptr)
+												if (WeakPlayerInfo.IsValid())
 												{
-													ProcessRedemptionRewards(PlayerInfo);
+													ProcessRedemptionRewards(WeakPlayerInfo.Get());
 												}
 											}));
 									}
 								}
 							}
 						}
-					}));
+					});
 			}
 		}
 
