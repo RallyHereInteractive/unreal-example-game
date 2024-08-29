@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 1,
-  "VersionName": "2024.1.2",
+  "VersionName": "2024.1.4",
   "FriendlyName": "RiderLink",
   "Description": "Plugin for establishing IPC connection with JetBrains Rider IDE",
   "Category": "Programming",
@@ -10,9 +10,7 @@
   "DocsURL": "",
   "MarketplaceURL": "",
   "SupportURL": "",
-  "EnabledByDefault": true,
   "CanContainContent": false,
-  "IsBetaVersion": false,
   "Installed": false,
   "Modules": [
     {
@@ -56,10 +54,8 @@
       "LoadingPhase": "PreDefault",
       "PlatformAllowList": [
         "Win64"
-      ],
-      "WhitelistPlatforms": [
-        "Win64"
       ]
     }
-  ]
+  ],
+  "EnabledByDefault": true
 }
