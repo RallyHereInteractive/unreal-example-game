@@ -387,7 +387,7 @@ void URHJsonDataFactory::CheckShouldShowForPlayer(URHJsonData* JsonData, URH_Pla
 	{
 		if (!CachedJsonDataByPlayer.Contains(PlayerInfo))
 		{
-			PlayerInventory->OnInventoryCacheUpdated.BindUObject(this, &URHJsonDataFactory::OnInventoryItemsUpdated);
+			PlayerInventory->OnInventoryCacheUpdated.AddUObject(this, &URHJsonDataFactory::OnInventoryItemsUpdated);
 		}
 
 		CachedJsonDataByPlayer.FindOrAdd(PlayerInfo).JsonDataSet.Add(JsonData);
