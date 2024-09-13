@@ -53,13 +53,6 @@ void URHUISessionManager::OnLoginPlayerChanged(ULocalPlayer* LocalPlayer)
 					{
 						if (PlayerInfo != nullptr)
 						{
-							// unbind the delegate
-							auto Inventory = PlayerInfo->GetPlayerInventory();
-							if (Inventory != nullptr)
-							{
-								Inventory->OnInventoryCacheUpdated.RemoveAll(this);
-							}
-							
 							if (URHUISessionData* SessionData = SessionDataPerPlayer.FindRef(PlayerInfo))
 							{
 								SessionData->bHasFullPlayerInventory = true;
@@ -85,6 +78,13 @@ void URHUISessionManager::OnLoginPlayerChanged(ULocalPlayer* LocalPlayer)
 									}
 								}
 							}
+						}
+
+						// unbind the delegate - this must happen last, as it will invalidate the capture data
+						auto Inventory = PlayerInfo->GetPlayerInventory();
+						if (Inventory != nullptr)
+						{
+							Inventory->OnInventoryCacheUpdated.RemoveAll(this);
 						}
 					});
 			}
