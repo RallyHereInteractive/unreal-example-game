@@ -95,11 +95,18 @@ void URH_RedeemVouchersAsyncTaskHelper::Start()
     {
 		TArray<URHStoreItemPrice*> Prices = VoucherItems[i]->GetPrices();
 
-        for (int32 j = 0; j < Prices.Num(); ++j)
+    	// only check the first price if it exists
+        //for (int32 j = 0; j < Prices.Num(); ++j)
+    	int32 j = 0;
+    	if (Prices.IsValidIndex(j))
         {
 			VoucherItems[i]->CanAfford(PlayerInfo, Prices[j], 1, FRH_GetInventoryStateDelegate::CreateUObject(this, &URH_RedeemVouchersAsyncTaskHelper::CanAffordCheck, VoucherItems[i], Prices[j]));
 			break;
         }
+	    else
+	    {
+		    CanAffordCheck(false, VoucherItems[i], nullptr);
+	    }
     }
 }
 
@@ -107,7 +114,7 @@ void URH_RedeemVouchersAsyncTaskHelper::CanAffordCheck(bool bOwned, URHStoreItem
 {
 	RequestsCompleted++;
 
-	if (bOwned)
+	if (bOwned && VoucherItem != nullptr && Price != nullptr)
 	{
 		if (URHStorePurchaseRequest* PurchaseRequest = VoucherItem->GetPurchaseRequest())
 		{

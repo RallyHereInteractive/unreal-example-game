@@ -658,14 +658,14 @@ bool URHLoadoutDataFactory::UnpackageLoadoutSetting(const FString& InLoadoutId, 
 								NewLoadoutItem->LoadoutItemId = itemPair.Key;
 
 								int32 LegacyItemId;
-								ItemObject->TryGetNumberField("item_id", LegacyItemId);
+								ItemObject->TryGetNumberField(TEXT("item_id"), LegacyItemId);
 								NewLoadoutItem->ItemId = LegacyItemId;
-								ItemObject->TryGetNumberField("count", NewLoadoutItem->Count);
-								ItemObject->TryGetNumberField("sort_order", NewLoadoutItem->SortOrder);
-								ItemObject->TryGetNumberField("loadout_item_value_id", NewLoadoutItem->ItemValueId);
-								ItemObject->TryGetStringField("creation_datetime", DateTime);
+								ItemObject->TryGetNumberField(TEXT("count"), NewLoadoutItem->Count);
+								ItemObject->TryGetNumberField(TEXT("sort_order"), NewLoadoutItem->SortOrder);
+								ItemObject->TryGetNumberField(TEXT("loadout_item_value_id"), NewLoadoutItem->ItemValueId);
+								ItemObject->TryGetStringField(TEXT("creation_datetime"), DateTime);
 								RallyHereAPI::ParseDateTime(DateTime, NewLoadoutItem->CreationDate);
-								ItemObject->TryGetStringField("last_modified_timestamp", DateTime);
+								ItemObject->TryGetStringField(TEXT("last_modified_timestamp"), DateTime);
 								RallyHereAPI::ParseDateTime(DateTime, NewLoadoutItem->LastModifiedTimestamp);
 
 								OutLoadout->Items.Push(NewLoadoutItem);
