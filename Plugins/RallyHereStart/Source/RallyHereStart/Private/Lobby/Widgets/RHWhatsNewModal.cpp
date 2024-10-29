@@ -248,6 +248,7 @@ void URHWhatsNewModal::GetPanelDataAsync(FOnGetWhatsNewPanelDataBlock Delegate /
 					{
 						int32 PanelCount = 0;
 						int32 CurrentCount = count;
+						/*
 						while (CurrentCount < maxPanelCount && PanelCount < PanelLength)
 						{
 							int32 index = (PanelLength - 1) - PanelCount;
@@ -258,6 +259,7 @@ void URHWhatsNewModal::GetPanelDataAsync(FOnGetWhatsNewPanelDataBlock Delegate /
 							}
 							PanelCount++;
 						}
+						*/
 
 						TArray<URHJsonData*> JsonPanelData(PanelData);
 						pJsonDataFactory->CheckShouldShowForPlayer(JsonPanelData, MyHud->GetLocalPlayerInfo(), FOnGetShouldShowPanels::CreateLambda([this, Delegate](FRHShouldShowPanelsWrapper Wrapper)
