@@ -6,7 +6,6 @@
 #include "Shared/Widgets/RHWidget.h"
 #include "Shared/HUD/RHHUDCommon.h"
 #include "Framework/Application/SlateApplication.h"
-#include "RHMobileLayoutSequencePlayer.h"
 #include "MovieScene.h"
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -1014,11 +1013,6 @@ void URHWidget::ToggleMobileLayout(RH_INPUT_STATE InputState)
 
 void URHWidget::FindAndPlayMobileLayoutAnim()
 {
-	if (UWidgetAnimation* Animation = FindMobileLayoutAnim())
-	{
-		URHMobileLayoutSequencePlayer* Player = GetOrAddMobileSequencePlayer(Animation);
-		Player->ActivateMobileLayout(*Animation);
-	}
 }
 
 UWidgetAnimation* URHWidget::FindMobileLayoutAnim()
@@ -1048,24 +1042,6 @@ UWidgetAnimation* URHWidget::FindMobileLayoutAnim()
 
 void URHWidget::RestorePreMobileAnimLayout()
 {
-	if (UWidgetAnimation* Animation = FindMobileLayoutAnim())
-	{
-		URHMobileLayoutSequencePlayer* Player = GetOrAddMobileSequencePlayer(Animation);
-		if (Player)
-		{
-			Player->DeactivateMobileLayout();
-		}
-	}
-}
-
-URHMobileLayoutSequencePlayer* URHWidget::GetOrAddMobileSequencePlayer(UWidgetAnimation* InAnimation)
-{
-	if (!MobileLayoutSequencePlayer && InAnimation)
-	{
-		MobileLayoutSequencePlayer = NewObject<URHMobileLayoutSequencePlayer>(this, NAME_None, RF_Transient);
-		MobileLayoutSequencePlayer->InitSequencePlayer(*InAnimation, *this);
-	}
-	return MobileLayoutSequencePlayer;
 }
 
 void URHWidget::NativeFocusGroupNavigateUpFailure(int32 FocusGroup, URHWidget* Widget)

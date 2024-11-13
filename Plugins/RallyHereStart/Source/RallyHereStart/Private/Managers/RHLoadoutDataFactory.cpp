@@ -628,17 +628,17 @@ bool URHLoadoutDataFactory::UnpackageLoadoutSetting(const FString& InLoadoutId, 
 
 			OutLoadout->LoadoutId = InLoadoutId;
 			OutLoadout->V = InSettingData.V;
-			LoadoutObject->TryGetNumberField("type_value_id", OutLoadout->TypeValueId);
-			LoadoutObject->TryGetNumberField("sort_order", OutLoadout->SortOrder);
-			LoadoutObject->TryGetStringField("name", OutLoadout->Name);
+			LoadoutObject->TryGetNumberField(TEXT("type_value_id"), OutLoadout->TypeValueId);
+			LoadoutObject->TryGetNumberField(TEXT("sort_order"), OutLoadout->SortOrder);
+			LoadoutObject->TryGetStringField(TEXT("name"), OutLoadout->Name);
 			FString DateTime;
-			LoadoutObject->TryGetStringField("creation_datetime", DateTime);
+			LoadoutObject->TryGetStringField(TEXT("creation_datetime"), DateTime);
 			RallyHereAPI::ParseDateTime(DateTime, OutLoadout->CreationDate);
-			LoadoutObject->TryGetStringField("last_modified_timestamp", DateTime);
+			LoadoutObject->TryGetStringField(TEXT("last_modified_timestamp"), DateTime);
 			RallyHereAPI::ParseDateTime(DateTime, OutLoadout->LastModifiedTimestamp);
 
 			const TSharedPtr<FJsonObject>* LoadoutItemData = nullptr;
-			if (LoadoutObject->TryGetObjectField("items", LoadoutItemData))
+			if (LoadoutObject->TryGetObjectField(TEXT("items"), LoadoutItemData))
 			{
 				if (const FJsonObject* LoadoutItemObject = LoadoutItemData->Get())
 				{

@@ -42,6 +42,6 @@ public:
 	}
 };
 
-IMPLEMENT_MODULE(FRallyHereStartEditorModule, RallyHereEditor);
+IMPLEMENT_MODULE(FRallyHereStartEditorModule, RallyHereStartEditor);
 
 #undef LOCTEXT_NAMESPACE

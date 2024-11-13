@@ -14,7 +14,7 @@ static void RHJsonFactory_WriteRawToTexture_RenderThread(FTexture2DDynamicResour
 {
     check(IsInRenderingThread());
 
-    FRHITexture2D* TextureRHI = TextureResource->GetTexture2DRHI();
+    auto TextureRHI = TextureResource->GetTexture2DRHI();
 
     int32 Width = TextureRHI->GetSizeX();
     int32 Height = TextureRHI->GetSizeY();

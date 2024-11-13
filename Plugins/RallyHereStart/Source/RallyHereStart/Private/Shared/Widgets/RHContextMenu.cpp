@@ -526,8 +526,6 @@ bool URHContextMenu::AttemptIgnorePlayer(bool bIgnore)
 
 FVector2D URHContextMenu::SetMenuPosition(class URHWidget* WidgetToMove, FMargin WidgetPadding, EViewSide side, float menuWidth, float menuHeight)
 {
-	FVector2D MoveTo;
-
 	const FGeometry& WidgetGeo = WidgetToMove->GetCachedGeometry();
 	FVector2D WidgetPixelPosition, WidgetViewportPosition, AbsoluteRectMin, AbsoluteRectMax;
 	FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(this);
