@@ -514,11 +514,6 @@ private:
 	//Restore layout from before playing MobileLayout animation
 	void RestorePreMobileAnimLayout();
 
-	class URHMobileLayoutSequencePlayer* GetOrAddMobileSequencePlayer(UWidgetAnimation* InAnimation);
-
-	UPROPERTY(Transient)
-	class URHMobileLayoutSequencePlayer* MobileLayoutSequencePlayer;
-
 	UPROPERTY(Transient)
 	UWidgetAnimation* MobileLayoutAnim;
 

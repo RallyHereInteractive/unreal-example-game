@@ -597,7 +597,7 @@ bool URHPartyManager::RemovePartyMemberById(const FGuid& PlayerId)
 		if (PartyMember.PlayerData->GetRHPlayerUuid() == PlayerId)
 		{
 			bReturnValue = true;
-			PartyMembers.RemoveAtSwap(i, 1, true);
+			PartyMembers.RemoveAtSwap(i);
 		}
 	}
 	return bReturnValue;

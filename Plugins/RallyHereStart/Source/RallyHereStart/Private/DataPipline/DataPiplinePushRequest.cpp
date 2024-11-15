@@ -164,7 +164,7 @@ void FDataPipelinePushRequest::BeginDataPipelinePush()
     HttpRequestPtr->SetURL(URLHandle->GetDataPipelineURL());
 
     float ConnectionTimeout = FHttpModule::Get().GetHttpConnectionTimeout();
-    FHttpModule::Get().SetHttpTimeout(ConnectionTimeout + 60);
+    //FHttpModule::Get().SetHttpTimeout(ConnectionTimeout + 60);
 
     HttpRequestPtr->SetContent(PayloadPtr->GetBuffer());
 

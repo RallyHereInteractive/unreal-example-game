@@ -152,7 +152,13 @@ void URHStoreItemHelper::AddReferencedObjects(UObject* InThis, FReferenceCollect
 
 	for (auto Entry : This->PricePoints)
 	{
-		Collector.AddReferencedObjects(Entry.Value, This);
+		TArray<TObjectPtr<URHStoreItemPrice>> PricePoints;
+		PricePoints.Reserve(Entry.Value.Num());
+		for (auto PricePoint : Entry.Value)
+		{
+			PricePoints.Add(PricePoint);
+		}
+		Collector.AddReferencedObjects(PricePoints, This);
 	}
 }
 
