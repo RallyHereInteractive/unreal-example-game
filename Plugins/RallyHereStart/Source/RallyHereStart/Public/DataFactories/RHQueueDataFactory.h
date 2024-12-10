@@ -188,7 +188,7 @@ public:
 
 	// Creates the Custom Match session
 	UFUNCTION(BlueprintCallable, Category = "Queue Data Factory|Custom")
-	virtual void                    CreateCustomMatchSession();
+	virtual void                    CreateCustomMatchSession(bool bAutoLaunchSelectedQueue = false);
 
 	// Leave the current Custom Match session
 	UFUNCTION(BlueprintCallable, Category = "Queue Data Factory|Custom")
@@ -335,7 +335,7 @@ protected:
 	void							UpdateCustomMatchInfo();
 	void							UpdateCustomSessionBrowserInfo();
 
-	void							HandleCustomMatchSessionCreated(bool bSuccess, URH_SessionView* JoinedSession, const FRH_ErrorInfo& ErrorInfo);
+	void							HandleCustomMatchSessionCreated(bool bSuccess, URH_SessionView* JoinedSession, const FRH_ErrorInfo& ErrorInfo, bool bAutoLaunchQueue);
 	void							HandleLoginPollSessionsComplete(bool bSuccess);
 	void							HandleSessionAdded(URH_SessionView* pSession);
 	void							HandleSessionRemoved(URH_SessionView* pSession);

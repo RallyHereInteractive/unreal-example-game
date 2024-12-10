@@ -58,6 +58,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Lobby HUD")
     void ForceEulaAccept();
 
+	UFUNCTION(exec)
+	void GMMF();
+
     virtual bool IsLobbyHUD() const override { return true; }
 
 protected:

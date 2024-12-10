@@ -498,7 +498,7 @@ ERH_MatchStatus URHQueueDataFactory::GetCurrentQueueMatchState() const
 	return IsInQueue() ? ERH_MatchStatus::Queued : ERH_MatchStatus::NotQueued;
 }
 
-void URHQueueDataFactory::CreateCustomMatchSession()
+void URHQueueDataFactory::CreateCustomMatchSession(bool bAutoLaunchSelectedQueue)
 {
 	if (CustomMatchSession)
 	{
@@ -520,11 +520,11 @@ void URHQueueDataFactory::CreateCustomMatchSession()
 		Params.SetRegionId(RegionId);
 		Params.SetClientVersion(URH_JoinedSession::GetClientVersionForSession());
 
-		SessionSS->CreateOrJoinSessionByType(Params, FRH_OnSessionUpdatedDelegate::CreateUObject(this, &URHQueueDataFactory::HandleCustomMatchSessionCreated));
+		SessionSS->CreateOrJoinSessionByType(Params, FRH_OnSessionUpdatedDelegate::CreateUObject(this, &URHQueueDataFactory::HandleCustomMatchSessionCreated, bAutoLaunchSelectedQueue));
 	}
 }
 
-void URHQueueDataFactory::HandleCustomMatchSessionCreated(bool bSuccess, URH_SessionView* JoinedSession, const FRH_ErrorInfo& ErrorInfo)
+void URHQueueDataFactory::HandleCustomMatchSessionCreated(bool bSuccess, URH_SessionView* JoinedSession, const FRH_ErrorInfo& ErrorInfo, bool bAutoLaunchSelectedQueue)
 {
 	if (bSuccess && JoinedSession != nullptr && JoinedSession->IsA(URH_JoinedSession::StaticClass()))
 	{
@@ -566,6 +566,36 @@ void URHQueueDataFactory::HandleCustomMatchSessionCreated(bool bSuccess, URH_Ses
 						CustomMatchSession->InvitePlayer(PartyMember.PlayerData->GetRHPlayerUuid(), 0, TMap<FString, FString>(), HandleInviteSentDelegate);
 					}
 				}
+			}
+
+			if (bAutoLaunchSelectedQueue && SelectedQueueId.Len() > 0)
+			{
+				// make sure we leave the queue if we are in it (old behavior)
+				LeaveQueue();
+				if (auto pGIMatchmakingCache = GetMatchmakingCache())
+				{
+					// assume queue is at least present at a basic level if it is selected
+					auto QueueInfo = pGIMatchmakingCache->GetQueue(SelectedQueueId);
+
+					if (QueueInfo)
+					{
+						TWeakObjectPtr<URH_JoinedSession> WeakSession = CustomMatchSession;
+						pGIMatchmakingCache->SearchMatchmakingTemplateGroup(QueueInfo->GetQueueInfo().GetMatchMakingTemplateGroupId(),
+							FRH_OnGetMatchmakingTemplateGroupCompleteDelegate::CreateWeakLambda(this, [this, WeakSession](bool bSuccess, const URH_MatchmakingTemplateGroupInfo* Info, const FRH_ErrorInfo& ErrorInfo)
+						{
+							if (bSuccess && WeakSession.IsValid())
+							{
+								auto LaunchTemplates = Info->GetPossibleInstanceRequestTemplateIds();
+								if (LaunchTemplates.Num() > 0)
+								{
+									FRHAPI_InstanceRequest Request;
+									Request.SetInstanceRequestTemplateId(LaunchTemplates[0]);
+									WeakSession->RequestInstance(Request);
+								}
+							}
+						}));
+					}
+				}				
 			}
 		}
 	}
