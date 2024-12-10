@@ -468,6 +468,15 @@ void ARHLobbyHUD::ForceEulaAccept()
     }
 }
 
+void ARHLobbyHUD::GMMF()
+{
+	if (QueueDataFactory)
+	{
+		QueueDataFactory->CreateCustomMatchSession(true);	
+	}
+}
+
+
 URHLobbyWidget* ARHLobbyHUD::GetLobbyWidget_Implementation()
 {
 	UE_LOG(RallyHereStart, Warning, TEXT("ARHLobbyHUD::GetLobbyWidget_Implementation called. Please override in BP and return the lobby widget instance."));
