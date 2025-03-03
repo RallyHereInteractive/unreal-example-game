@@ -140,54 +140,69 @@ void URHToastNotificationWidgetBase::NotifyToastHidden()
 
 void URHToastNotificationWidgetBase::OnFriendUpdated(URH_RHFriendAndPlatformFriend* UpdatedFriend)
 {
-	if (UpdatedFriend->GetPreviousStatus() != UpdatedFriend->GetStatus())
+	UpdatedFriend->AcknowledgeFriendUpdate();
+	if (UpdatedFriend->GetPreviousStatus() == UpdatedFriend->GetStatus())
 	{
-		if (URH_PlayerInfoSubsystem* PSS = MyHud->GetPlayerInfoSubsystem())
+		return;
+	}
+
+	URH_PlayerInfoSubsystem* PSS = MyHud->GetPlayerInfoSubsystem();
+	if (!PSS)
+	{
+		return;
+	}
+
+	URH_PlayerInfo* FriendPlayerInfo = PSS->GetOrCreatePlayerInfo(UpdatedFriend->GetRHPlayerUuid());
+	if (!FriendPlayerInfo)
+	{
+		return;
+	}
+	
+	EToastCategory ToastCategory;
+	FText ToastMessage;
+
+	switch (UpdatedFriend->GetStatus())
+	{
+	case ERHAPI_FriendshipStatus::FriendRequestSent:
+		if (UpdatedFriend->IsFirstRHFriendUpdate())
 		{
-			if (URH_PlayerInfo* FriendPlayerInfo = PSS->GetOrCreatePlayerInfo(UpdatedFriend->GetRHPlayerUuid()))
-			{
-				EToastCategory ToastCategory;
-				FText ToastMessage;
-
-				switch (UpdatedFriend->GetStatus())
-				{
-				case ERHAPI_FriendshipStatus::FriendRequestSent:
-					ToastCategory = EToastCategory::ETOAST_FRIEND;
-					ToastMessage = NSLOCTEXT("RHFriendlist", "AddSuccessMsg", "Friend request sent to {0}");
-					break;
-				case ERHAPI_FriendshipStatus::FriendRequestPending:
-					ToastCategory = EToastCategory::ETOAST_FRIEND;
-					ToastMessage = NSLOCTEXT("RHFriendlist", "ReceiveRequest", "You have received a friend request from {0}");
-					break;
-				case ERHAPI_FriendshipStatus::FriendRequestDeclinedByOther:
-					ToastCategory = EToastCategory::ETOAST_ERROR;
-					ToastMessage = NSLOCTEXT("RHFriendlist", "FriendRejected", "{0} declined your friend invite.");
-					break;
-				case ERHAPI_FriendshipStatus::Friends:
-					ToastCategory = EToastCategory::ETOAST_FRIEND;
-					ToastMessage = NSLOCTEXT("RHFriendlist", "FriendAdded", "You are now friends with {0}.");
-					break;
-				default:
-					return;
-				}
-
-				UpdatedFriend->AcknowledgeFriendUpdate();
-				
-				FString FriendDisplayName;
-				if (FriendPlayerInfo->GetLastKnownDisplayName(FriendDisplayName))
-				{
-					HandleGetDisplayNameResponse(true, FriendDisplayName, FriendPlayerInfo, ToastCategory, ToastMessage);
-				}
-				else
-				{
-					FriendPlayerInfo->GetLastKnownDisplayNameAsync(FTimespan(), false, ERHAPI_Platform::Anon,
-						FRH_PlayerInfoGetDisplayNameDelegate::CreateUObject(this, &URHToastNotificationWidgetBase::HandleGetDisplayNameResponse,
-							FriendPlayerInfo,
-							ToastCategory,
-							ToastMessage));
-				}
-			}
+			return;
 		}
+		ToastCategory = EToastCategory::ETOAST_FRIEND;
+		ToastMessage = NSLOCTEXT("RHFriendlist", "AddSuccessMsg", "Friend request sent to {0}");
+		break;
+	case ERHAPI_FriendshipStatus::FriendRequestPending:
+		ToastCategory = EToastCategory::ETOAST_FRIEND;
+		ToastMessage = NSLOCTEXT("RHFriendlist", "ReceiveRequest", "You have received a friend request from {0}");
+		break;
+	case ERHAPI_FriendshipStatus::FriendRequestDeclinedByOther:
+		ToastCategory = EToastCategory::ETOAST_ERROR;
+		ToastMessage = NSLOCTEXT("RHFriendlist", "FriendRejected", "{0} declined your friend invite.");
+		break;
+	case ERHAPI_FriendshipStatus::Friends:
+		if (UpdatedFriend->IsFirstRHFriendUpdate())
+		{
+			return;
+		}
+		ToastCategory = EToastCategory::ETOAST_FRIEND;
+		ToastMessage = NSLOCTEXT("RHFriendlist", "FriendAdded", "You are now friends with {0}.");
+		break;
+	default:
+		return;
+	}
+
+	FString FriendDisplayName;
+	if (FriendPlayerInfo->GetLastKnownDisplayName(FriendDisplayName))
+	{
+		HandleGetDisplayNameResponse(true, FriendDisplayName, FriendPlayerInfo, ToastCategory, ToastMessage);
+	}
+	else
+	{
+		FriendPlayerInfo->GetLastKnownDisplayNameAsync(FTimespan(), false, ERHAPI_Platform::Anon,
+			FRH_PlayerInfoGetDisplayNameDelegate::CreateUObject(this, &URHToastNotificationWidgetBase::HandleGetDisplayNameResponse,
+				FriendPlayerInfo,
+				ToastCategory,
+				ToastMessage));
 	}
 }
 
