@@ -213,7 +213,7 @@ void URHPartyManager::UpdateParty(URH_JoinedSession* pSession)
 		// leave the party if still in our owner object (this call can be due to it being removed, so do not leave twice)
 		if (OldParty->GetSessionOwner() != nullptr && OldParty->GetSessionOwner()->GetSessionById(OldParty->GetSessionId()) != nullptr)
 		{
-			OldParty->Leave(false);
+			OldParty->Leave(false, "LeavingStaleParty");
 		}
 
 		OnPartyDataUpdated.Broadcast();
@@ -249,7 +249,7 @@ void URHPartyManager::UpdateParty(URH_JoinedSession* pSession)
 		if (OldParty != nullptr)
 		{
 			OldParty->SetWatchingPlayers(false);
-			OldParty->Leave(false);
+			OldParty->Leave(false, "LeavingOldParty");
 		}
 		PartySession->SetWatchingPlayers(true);
 
@@ -403,7 +403,7 @@ void URHPartyManager::UpdatePartyInvites(TArray<URH_InvitedSession*> pSessions)
 			// auto decline if communications are disabled
 			if (!bCommunicationEnabled)
 			{
-				pSession->Leave();
+				pSession->Leave("DeclineInviteCommDisabled");
 				return;
 			}
 
@@ -414,7 +414,7 @@ void URHPartyManager::UpdatePartyInvites(TArray<URH_InvitedSession*> pSessions)
 				{
 					if (RHFS->IsPlayerBlocked(InviterId))
 					{
-						pSession->Leave();
+						pSession->Leave("DeclineInviteFromBlocked");
 						continue;
 					}
 				}
@@ -440,7 +440,7 @@ void URHPartyManager::UpdatePartyInvites(TArray<URH_InvitedSession*> pSessions)
 								if (LocalPlayerAuthContext.IsValid() && InviterAuthContext.IsValid()
 									&& LocalPlayerAuthContext->GetLoginResult().GetValue().GetPortalId() == InviterAuthContext->GetLoginResult().GetValue().GetPortalId())
 								{
-									pSession->Leave();
+									pSession->Leave("AutoDeclineDueToCrossplay");
 
 									// Get display name async for log
 									Inviter->GetLastKnownDisplayNameAsync(FTimespan(), false, ERHAPI_Platform::Anon, FRH_PlayerInfoGetDisplayNameDelegate::CreateWeakLambda(this, [this, Inviter](bool bSuccess, const FString& DisplayName)
@@ -906,7 +906,7 @@ void URHPartyManager::UIX_DenyPartyInvitation()
 		//reset party inviter
 		PartyInviter = nullptr;
 
-		InvitedSession->Leave();
+		InvitedSession->Leave("DenyPartyInvite");
 	}
 }
 
@@ -1068,7 +1068,7 @@ void URHPartyManager::PartyLeaveResponse()
 		LeaveQueue();
 
 		IsPendingLeave = true;
-		PartySession->Leave(false);
+		PartySession->Leave(false, "LeaveParty");
 		
 		CreateSoloParty();
 	}
@@ -1097,7 +1097,7 @@ void URHPartyManager::ForcePartyCleanUp(bool ForceLeave /*= false*/)
 		// leave any party we might be in
 		if (PartySession != nullptr)
 		{
-			PartySession->Leave(false);
+			PartySession->Leave(false, "ForcePartyCleanup");
 		}
 	}
 }

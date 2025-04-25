@@ -314,7 +314,7 @@ bool URHQueueDataFactory::LeaveMatch()
 		TArray<URH_JoinedSession*> JoinedSessions = SessionSS->GetJoinedSessionsByType(RHSessionType);
 		for (URH_JoinedSession* pJoinedSession : JoinedSessions)
 		{
-			pJoinedSession->Leave(false);
+			pJoinedSession->Leave(false, "LeaveMatch");
 			bReturn = true;
 		}
 	}
@@ -621,7 +621,7 @@ void URHQueueDataFactory::HandleConfirmLeaveCustomLobby()
 			}
 		}
 
-		CustomMatchSession->Leave(false, FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this](bool bSuccess, URH_SessionView* pUpdatedSession, const FRH_ErrorInfo& ErrorInfo)
+		CustomMatchSession->Leave(false, "LeaveCustom", FRH_OnSessionUpdatedDelegate::CreateWeakLambda(this, [this](bool bSuccess, URH_SessionView* pUpdatedSession, const FRH_ErrorInfo& ErrorInfo)
 			{
 				UpdateCustomMatchInfo();
 			}));
@@ -852,7 +852,7 @@ void URHQueueDataFactory::DeclineMatchInvite()
 	auto* InvitedSession = InvitedSessions.Num() > 0 ? InvitedSessions[0] : nullptr;
 	if (InvitedSession)
 	{
-		InvitedSession->Leave();
+		InvitedSession->Leave("DeclineMatchInvite");
 	}
 }
 
@@ -1319,7 +1319,7 @@ void URHQueueDataFactory::ProcessCustomGameInvite(URH_InvitedSession* pInvitedSe
 		if (Invite->GetSessionId() != pInvitedSession->GetSessionId())
 		{
 			UE_LOG(RallyHereStart, Warning, TEXT("URHQueueDataFactory::ProcessCustomGameInvite - there's already a pending custom game invite, auto-declining incoming one"));
-			pInvitedSession->Leave();
+			pInvitedSession->Leave("PendingAnotherCustomInvite");
 			return;
 		}
 	}
@@ -1378,5 +1378,5 @@ void URHQueueDataFactory::ProcessCustomGameInvite(URH_InvitedSession* pInvitedSe
 	}
 
 	// If fall through then decline
-	pInvitedSession->Leave();
+	pInvitedSession->Leave("CustomInviteFallthrough");
 }

@@ -20,6 +20,7 @@
 #include "RH_LocalPlayerLoginSubsystem.h"
 #include "RH_GameInstanceSubsystem.h"
 #include "Interfaces/OnlineGameMatchesInterface.h"
+#include "Interfaces/OnlinePresenceInterface.h"
 #include "PlayerExperience/PlayerExperienceGlobals.h"
 
 URHGameInstance::URHGameInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
